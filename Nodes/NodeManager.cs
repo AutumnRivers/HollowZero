@@ -24,5 +24,17 @@ namespace HollowZero.Nodes
         {
             OS.currentInstance.netMap.nodes.RemoveAll(c => c.idName != "playerComp" && c.idName != "jmail" && c.idName != "ispComp");
         }
+
+        public static Computer GetRandomNode(string except = null)
+        {
+            Random random = new Random();
+            string[] bannedIDs = { "playerComp", "jmail", "ispComp", except };
+
+            var nodes = OS.currentInstance.netMap.nodes.FindAll(c => !bannedIDs.Contains(c.idName));
+            int index = random.Next(0, nodes.Count);
+            int indexOfComp = OS.currentInstance.netMap.nodes.IndexOf(nodes[index]);
+
+            return OS.currentInstance.netMap.nodes[indexOfComp];
+        }
     }
 }

@@ -41,6 +41,12 @@ namespace HollowZero.Nodes
             sourceComputer.links.Add(OS.currentInstance.netMap.nodes.IndexOf(targetComputer));
         }
 
+        public static void AddRandomLinkToComp(Computer sourceComputer)
+        {
+            var targetComp = NodeManager.GetRandomNode(sourceComputer.idName);
+            AddNewLinkToComp(sourceComputer, targetComp);
+        }
+
         public static string GetNewIP()
         {
             return NetworkMap.generateRandomIP();
@@ -54,33 +60,41 @@ namespace HollowZero.Nodes
             string[] tlds = { "com", "net", "site", "org", "gov", "mail", "strudel", "dev", "tech" };
 
             StringBuilder websiteURL = new StringBuilder();
-
-            for(var i = 0; i < 3; i++)
-            {
-                Random random = new Random();
-
-                switch(i)
-                {
-                    case 0:
-                        int subIndex = random.Next(0, subdomains.Length - 1);
-                        websiteURL.Append(subdomains[subIndex]);
-                        break;
-                    case 1:
-                        int wordIndex = random.Next(0, words.Length - 1);
-                        websiteURL.Append(words[wordIndex]);
-                        wordIndex = random.Next(0, words.Length - 1);
-                        websiteURL.Append(words[wordIndex]);
-                        wordIndex = random.Next(0, words.Length - 1);
-                        websiteURL.Append(words[wordIndex]);
-                        break;
-                    case 2:
-                        int tldIndex = random.Next(0, tlds.Length - 1);
-                        websiteURL.Append(tlds[tldIndex]);
-                        break;
-                }
-            }
+            GenURL();
 
             return websiteURL.ToString();
+
+            void GenURL()
+            {
+                for (var i = 0; i < 3; i++)
+                {
+                    Random random = new Random();
+
+                    switch (i)
+                    {
+                        case 0:
+                            int subIndex = random.Next(0, subdomains.Length - 1);
+                            websiteURL.Append(subdomains[subIndex] + ".");
+                            break;
+                        case 1:
+                            int wordIndex = random.Next(0, words.Length - 1);
+                            websiteURL.Append(words[wordIndex]);
+                            wordIndex = random.Next(0, words.Length - 1);
+                            websiteURL.Append(words[wordIndex] + ".");
+                            break;
+                        case 2:
+                            int tldIndex = random.Next(0, tlds.Length - 1);
+                            websiteURL.Append(tlds[tldIndex]);
+                            break;
+                    }
+                }
+
+                if(OS.currentInstance.netMap.nodes.Exists(c => c.ip == websiteURL.ToString()))
+                {
+                    websiteURL = new StringBuilder();
+                    GenURL();
+                }
+            }
         }
     }
 }

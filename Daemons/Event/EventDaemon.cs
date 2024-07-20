@@ -19,6 +19,8 @@ namespace HollowZero.Daemons.Event
         public string EventTitle;
         public string EventContent;
 
+        public bool OneShot = true;
+
         public readonly SpriteFont TitleFont = GuiData.font;
         public readonly SpriteFont ContentFont = GuiData.smallfont;
 
@@ -40,5 +42,40 @@ namespace HollowZero.Daemons.Event
 
             return offset;
         }
+    }
+
+    internal class EventManager
+    {
+        private static readonly EventDetails DefaultDetails = new EventDetails()
+        {
+            Title = "Event Title",
+            Content = "Event Content"
+        };
+
+        public static ChoiceEventDaemon CreateChoiceEventDaemon(ChoiceEvent choiceEvent, EventDetails details = null)
+        {
+            details ??= DefaultDetails;
+            var cDaemon = new ChoiceEventDaemon(OS.currentInstance.thisComputer, "Choice Event", OS.currentInstance)
+            {
+                choiceEvent = choiceEvent,
+                CEventTitle = details.Title,
+                CEventContent = details.Content
+            };
+            return cDaemon;
+        }
+
+        public static void AddChoiceEventToNode(Computer comp, ChoiceEvent choiceEvent, EventDetails details)
+        {
+            var c = CreateChoiceEventDaemon(choiceEvent, details);
+            comp.daemons.Add(c);
+            comp.initDaemons();
+        }
+    }
+
+    internal class EventDetails
+    {
+        public string Title;
+        public string Content;
+        public bool OneShot = true;
     }
 }

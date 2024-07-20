@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using Hacknet;
+﻿using Hacknet;
 using Hacknet.Gui;
 
 using Microsoft.Xna.Framework;
@@ -22,6 +16,9 @@ namespace HollowZero.Daemons.Event
         [XMLStorage]
         public string DEventTitle = "Dialogue Event Title";
 
+        [XMLStorage]
+        public string IsOneShot = "true";
+
         [XMLStorage(IsContent = true)]
         public string DEventContent = "Dialogue Event Content";
 
@@ -38,6 +35,8 @@ namespace HollowZero.Daemons.Event
 
             EventTitle = DEventTitle;
             EventContent = DEventContent;
+
+            OneShot = bool.Parse(IsOneShot);
         }
 
         public override void draw(Rectangle bounds, SpriteBatch sb)
@@ -45,10 +44,15 @@ namespace HollowZero.Daemons.Event
             base.draw(bounds, sb);
 
             DrawEventTemplate(bounds);
-
             var continueButton = Button.doButton(ButtonID, bounds.X + 25, bounds.Y + bounds.Height - 75, 200, 50, CONTINUE_TEXT, ButtonColor);
 
-
+            if(continueButton)
+            {
+                OS.currentInstance.display.command = "probe";
+                if (!OneShot) return;
+                comp.daemons.Remove(this);
+                comp.initDaemons();
+            }
         }
     }
 }

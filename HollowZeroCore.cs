@@ -33,11 +33,12 @@ namespace HollowZero
 
         private const string HZLOG_PREFIX = "[Hollow Zero] ";
 
-        private List<Malware> CollectedMalware { get; set; }
-        private List<Modification> CollectedMods { get; set; }
-        private List<Corruption> CollectedCorruption { get; set; }
+        private static List<Malware> CollectedMalware { get; set; }
+        private static List<Modification> CollectedMods { get; set; }
+        private static List<Corruption> CollectedCorruption { get; set; }
 
-        public int InfectionLevel { get; internal set; }
+        public static int InfectionLevel { get; internal set; }
+        public static uint PlayerCredits { get; internal set; }
 
         public override bool Load()
         {
@@ -46,12 +47,14 @@ namespace HollowZero
             CollectedCorruption = new List<Corruption>();
 
             InfectionLevel = 0;
+            PlayerCredits = 0;
 
             HZLog("Initializing...");
             HarmonyInstance.PatchAll(typeof(HollowZeroCore).Assembly);
 
             HZLog("Adding daemons...");
             DaemonManager.RegisterDaemon<DialogueEventDaemon>();
+            DaemonManager.RegisterDaemon<ChoiceEventDaemon>();
 
             Action<OSLoadedEvent> extInit = ExtensionInit;
             EventManager<OSLoadedEvent>.AddHandler(extInit);

@@ -74,6 +74,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Daemons\Event\ChoiceEventDaemon.cs" />
+    <Compile Include="Daemons\Event\Choices\DefaultChoiceEvents.cs" />
     <Compile Include="Daemons\Event\DialogueEventDaemon.cs" />
     <Compile Include="Daemons\Event\EventDaemon.cs" />
     <Compile Include="Daemons\HollowDaemon.cs" />
@@ -81,6 +83,7 @@
     <Compile Include="HollowZeroCore.cs" />
     <Compile Include="Nodes\NodeGenerator.cs" />
     <Compile Include="Nodes\NodeManager.cs" />
+    <Compile Include="Patches\CommandDisabler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup />
