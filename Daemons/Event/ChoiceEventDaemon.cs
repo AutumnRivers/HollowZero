@@ -31,10 +31,10 @@ namespace HollowZero.Daemons.Event
 
         public ChoiceEvent choiceEvent;
         public const int BUTTON_MARGIN = 10;
-        public const string DEFAULT_EVENTS_FILE_PATH = "/Config/Events/ChoiceEvents.xml";
+        public const string DEFAULT_EVENTS_FILE_PATH = HollowZeroCore.DEFAULT_CONFIG_PATH + "/Events/ChoiceEvents.xml";
 
         private static List<ChoiceEvent> possibleEvents = new List<ChoiceEvent>();
-        public static List<ChoiceEvent> PossibleEvents
+        internal static List<ChoiceEvent> PossibleEvents
         {
             get
             {
@@ -189,8 +189,6 @@ namespace HollowZero.Daemons.Event
                             ev.Choices.Add(choice);
                         }
                     } while (xml.Name != "ChoiceEvent");
-
-                    Console.WriteLine(ev.Title);
                     choiceEvents.Add(ev);
                 }
             } while (!xml.EOF);
@@ -203,7 +201,7 @@ namespace HollowZero.Daemons.Event
                 {
                     Title = xml.ReadRequiredAttribute("Title"),
                     Subtext = xml.ReadRequiredAttribute("Subtext"),
-                    Color = new Color().FromString(xml.ReadRequiredAttribute("Color"))
+                    Color = ColorUtils.FromString(xml.ReadRequiredAttribute("Color"))
                 };
 
                 if (!hasChances)
@@ -234,7 +232,6 @@ namespace HollowZero.Daemons.Event
                     do
                     {
                         xml.Read();
-                        Console.WriteLine(xml.Name);
 
                         if (xml.Name == "ChoiceChance")
                         {
