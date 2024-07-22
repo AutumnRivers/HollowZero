@@ -152,14 +152,15 @@ namespace HollowZero
             }
         }
 
-        public static void RemovePlayerCredits(int amount)
+        public static bool RemovePlayerCredits(int amount)
         {
             if(PlayerCredits - amount < 0)
             {
-                PlayerCredits = 0;
+                return false;
             } else
             {
                 PlayerCredits -= (uint)amount;
+                return true;
             }
         }
 

@@ -55,6 +55,15 @@ namespace HollowZero.Daemons.Event
 
             EventTitle = choiceEvent.Title;
             EventContent = choiceEvent.Content;
+
+            comp.name = "??? UNKNOWN ???";
+        }
+
+        public override void navigatedTo()
+        {
+            base.navigatedTo();
+
+            comp.name = choiceEvent.Title;
         }
 
         public override void draw(Rectangle bounds, SpriteBatch sb)
@@ -67,11 +76,36 @@ namespace HollowZero.Daemons.Event
             for (var i = choiceEvent.Choices.Count - 1; i > -1; i--)
             {
                 var choice = choiceEvent.Choices[i];
+                bool disable = false;
+                Color buttonColor = choice.Color;
+
+                if(choice.ChoiceType == "takecreds" && HollowZeroCore.PlayerCredits - choice.ChoiceAmount < 0)
+                {
+                    disable = true;
+                    buttonColor = new Color(100, 100, 100);
+                }
+
+                foreach(var chance in choice.Chances)
+                {
+                    if(chance.Value.ChoiceType == "takecreds" && HollowZeroCore.PlayerCredits - chance.Value.ChoiceAmount < 0)
+                    {
+                        disable = true;
+                        buttonColor = new Color(100, 100, 100);
+                    }
+                }
+
                 string bText = $"{choice.Title}\n{choice.Subtext}";
                 var b = Button.doButton(choice.ButtonID, bounds.X + 25,
-                    bounds.Y + bounds.Height - buttonOffset, bounds.Width - 50, 50, bText, choice.Color);
+                    bounds.Y + bounds.Height - buttonOffset, bounds.Width - 50, 50, bText, buttonColor);
                 if (b)
                 {
+                    if(disable)
+                    {
+                        OS.currentInstance.warningFlash();
+                        OS.currentInstance.terminal.writeLine("<!> You don't have enough resources for that!");
+                        return;
+                    }
+
                     if(choice.OnPressed != null)
                     {
                         choice.OnPressed.Invoke();
@@ -81,14 +115,11 @@ namespace HollowZero.Daemons.Event
                         Random random = new Random();
                         int luckValue = random.Next(0, luck);
 
-                        Console.WriteLine(choice.Title + $"({choice.Chances.Count})");
-
                         foreach(var chance in choice.Chances)
                         {
-                            Console.WriteLine($"{luckValue} / {chance.Key}");
                             if(luckValue < chance.Key)
                             {
-                                chance.Value.Invoke();
+                                chance.Value.Trigger.Invoke();
                                 break;
                             }
                         }
@@ -178,6 +209,7 @@ namespace HollowZero.Daemons.Event
                 if (!hasChances)
                 {
                     string type = xml.ReadRequiredAttribute("Type");
+                    choice.ChoiceType = type;
                     int amount = 0;
                     string item = "";
 
@@ -191,11 +223,14 @@ namespace HollowZero.Daemons.Event
                         item = xml.ReadContentAsString();
                     }
 
+                    choice.ChoiceAmount = amount;
+                    choice.ChoiceItem = item;
+
                     choice.OnPressed = DetermineActionFromType(type, amount, item);
                 } else
                 {
                     int luck = 0;
-                    List<KeyValuePair<int, Action>> percentChanceList = new List<KeyValuePair<int, Action>>();
+                    List<KeyValuePair<int, ChoiceChance>> percentChanceList = new List<KeyValuePair<int, ChoiceChance>>();
                     do
                     {
                         xml.Read();
@@ -203,6 +238,8 @@ namespace HollowZero.Daemons.Event
 
                         if (xml.Name == "ChoiceChance")
                         {
+                            ChoiceChance chance = new ChoiceChance();
+
                             int chancePercent = int.Parse(xml.ReadRequiredAttribute("Chance"));
                             string type = xml.ReadRequiredAttribute("Type");
                             int amount = 0;
@@ -220,7 +257,12 @@ namespace HollowZero.Daemons.Event
 
                             Action action = DetermineActionFromType(type, amount, item);
 
-                            percentChanceList.Add(new KeyValuePair<int, Action>(chancePercent, action));
+                            chance.ChoiceType = type;
+                            chance.ChoiceAmount = amount;
+                            chance.ChoiceItem = item;
+                            chance.Trigger = action;
+
+                            percentChanceList.Add(new KeyValuePair<int, ChoiceChance>(chancePercent, chance));
                         }
                     } while (xml.Name != "Choice");
 
@@ -261,10 +303,22 @@ namespace HollowZero.Daemons.Event
         public string Subtext;
         public Action OnPressed;
         public Color Color;
+        public string ChoiceType;
+        public int ChoiceAmount;
+        public string ChoiceItem;
+        public bool Disabled = false;
         public int ButtonID = PFButton.GetNextID();
 
-        public SortedDictionary<int, Action> Chances = new SortedDictionary<int, Action>(new SmallestFirst());
+        public SortedDictionary<int, ChoiceChance> Chances = new SortedDictionary<int, ChoiceChance>(new SmallestFirst());
         public int TotalLuckValue = 100;
+    }
+
+    public class ChoiceChance
+    {
+        public Action Trigger;
+        public string ChoiceType;
+        public int ChoiceAmount;
+        public string ChoiceItem;
     }
 
     public class SmallestFirst : Comparer<int>
@@ -281,9 +335,9 @@ namespace HollowZero.Daemons.Event
         }
     }
 
-    public class SmallestKeyFirst : Comparer<KeyValuePair<int, Action>>
+    public class SmallestKeyFirst : Comparer<KeyValuePair<int, ChoiceChance>>
     {
-        public override int Compare(KeyValuePair<int, Action> x, KeyValuePair<int, Action> y)
+        public override int Compare(KeyValuePair<int, ChoiceChance> x, KeyValuePair<int, ChoiceChance> y)
         {
             if(x.Key.CompareTo(y.Key) != 0)
             {
