@@ -74,11 +74,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Actions\InfecTrackerActions.cs" />
+    <Compile Include="Commands\DebugCommands.cs" />
+    <Compile Include="Commands\QuickStatCommands.cs" />
     <Compile Include="Daemons\Event\ChoiceEventDaemon.cs" />
-    <Compile Include="Daemons\Event\Choices\DefaultChoiceEvents.cs" />
+    <Compile Include="Daemons\Event\Choices\TestChoiceEvents.cs" />
     <Compile Include="Daemons\Event\DialogueEventDaemon.cs" />
     <Compile Include="Daemons\Event\EventDaemon.cs" />
     <Compile Include="Daemons\HollowDaemon.cs" />
+    <Compile Include="Executables\InfecTracker.cs" />
+    <Compile Include="Extensions\ColorExtensions.cs" />
+    <Compile Include="Extensions\ListExtensions.cs" />
     <Compile Include="Fixes\DaemonContentFix.cs" />
     <Compile Include="HollowZeroCore.cs" />
     <Compile Include="Nodes\NodeGenerator.cs" />

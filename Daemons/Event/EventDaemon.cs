@@ -12,7 +12,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace HollowZero.Daemons.Event
 {
-    internal class EventDaemon : HollowDaemon
+    public class EventDaemon : HollowDaemon
     {
         public EventDaemon(Computer computer, string serviceName, OS os) : base(computer, serviceName, os) { }
 

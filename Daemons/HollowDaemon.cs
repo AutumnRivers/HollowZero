@@ -14,20 +14,32 @@ using Pathfinder.Daemon;
 
 namespace HollowZero.Daemons
 {
-    internal class HollowDaemon : BaseDaemon
+    public class HollowDaemon : BaseDaemon
     {
         internal HollowDaemon(Computer computer, string serviceName, OS os) : base(computer, serviceName, os) { }
 
         public const int HSEP_HEIGHT = 4;
 
-        protected void DrawCenteredText(Rectangle bounds, string text, SpriteFont font, int startingHeight)
+        internal static void DrawCenteredText(Rectangle bounds, string text, SpriteFont font, int startingHeight, Color textColor = default)
         {
+            textColor = textColor == default ? Color.White : textColor;
             Vector2 textVector = font.MeasureString(text);
             Vector2 textPosition = new Vector2(
                 (float)(bounds.X + bounds.Width / 2) - textVector.X / 2f,
                 (float)(startingHeight) - textVector.Y / 2f);
 
-            GuiData.spriteBatch.DrawString(font, text, textPosition, Color.White);
+            GuiData.spriteBatch.DrawString(font, text, textPosition, textColor);
+        }
+
+        internal static void DrawTrueCenteredText(Rectangle bounds, string text, SpriteFont font, Color textColor = default)
+        {
+            textColor = textColor == default ? Color.White : textColor;
+            Vector2 textVector = font.MeasureString(text);
+            Vector2 textPosition = new Vector2(
+                (float)(bounds.X + bounds.Width / 2) - textVector.X / 2f,
+                (float)(bounds.Y + bounds.Height / 2) - textVector.Y / 2f);
+
+            GuiData.spriteBatch.DrawString(font, text, textPosition, textColor);
         }
 
         protected void DrawHorizontalSeparator(Rectangle bounds, int startingHeight)
@@ -43,6 +55,16 @@ namespace HollowZero.Daemons
         protected int GetStringHeight(SpriteFont font, string content)
         {
             return (int)Math.Ceiling(GetStringSize(font, content).Y);
+        }
+
+        protected void RemoveDaemon()
+        {
+            var sysFolder = comp.getFolderPath("sys");
+            comp.deleteFile("SYSTEM", "DefaultBootModule.txt", sysFolder);
+            comp.getFolderFromPath("log").files.Clear();
+
+            comp.daemons.Remove(this);
+            comp.initDaemons();
         }
     }
 }

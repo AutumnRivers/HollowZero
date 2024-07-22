@@ -50,8 +50,7 @@ namespace HollowZero.Daemons.Event
             {
                 OS.currentInstance.display.command = "probe";
                 if (!OneShot) return;
-                comp.daemons.Remove(this);
-                comp.initDaemons();
+                RemoveDaemon();
             }
         }
     }
