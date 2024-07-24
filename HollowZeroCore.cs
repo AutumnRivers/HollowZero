@@ -82,9 +82,11 @@ namespace HollowZero
 
         //internal static List<string> loadedPacks = new List<string>();
         internal static Dictionary<string, string> knownPacks = new Dictionary<string, string>();
+        internal static List<Assembly> knownPackAsms = new List<Assembly>();
         internal static Dictionary<string, string> loadedPacks = new Dictionary<string, string>();
 
         internal static bool GuidebookIsActive { get; set; }
+        internal static bool EnableTrinity { get; set; }
 
         public override bool Load()
         {
@@ -103,8 +105,8 @@ namespace HollowZero
             foreach (var pck in possiblePacks)
             {
                 if (!File.Exists(pck)) continue;
-                var packAsm = Assembly.LoadFrom(pck);
-                //var packAsm = HollowPFManager.LoadAssemblyThroughPF(pck);
+                //var packAsm = Assembly.LoadFrom(pck);
+                var packAsm = HollowPFManager.LoadAssemblyThroughPF(pck);
                 HZLog($"Attempting to get metadata of Hollow Pack {packAsm.GetName()}...");
 
                 if (GetHollowPackDetails(packAsm, out string packID, out string author))
@@ -179,12 +181,8 @@ namespace HollowZero
         {
             bool allLoaded = true;
 
-            var possiblePacks = Directory.GetFiles(GetExtensionFilePath(DEFAULT_PACKS_FOLDER));
-            foreach (var pck in possiblePacks)
+            foreach (var packAsm in knownPackAsms)
             {
-                if (!File.Exists(pck)) continue;
-                var packAsm = Assembly.LoadFrom(pck);
-                //var packAsm = HollowPFManager.LoadAssemblyThroughPF(pck);
                 if (RegisterHollowPack(packAsm, out string packID, out string author))
                 {
                     loadedPacks.Add(packID, author);
@@ -200,31 +198,27 @@ namespace HollowZero
         internal static bool GetHollowPackDetails(Assembly hollowPackAsm, out string packID, out string packAuthor)
         {
             string asmName = hollowPackAsm.GetName().Name;
-            foreach(var t in hollowPackAsm.GetTypes())
-            {
-                Console.WriteLine(t.Name + $" / Base Type: {t.BaseType} / Is Hollow Pack: {t.BaseType.Equals(typeof(HollowPack))}");
-            }
-            var registerClass = hollowPackAsm.GetTypes().FirstOrDefault(t => t.BaseType.Equals(typeof(HollowPack)));
+            var registerClass = hollowPackAsm.GetTypes().FirstOrDefault(t => t.BaseType.Name == "HollowPack");
             if (registerClass == default)
             {
                 FailLog(asmName, RegisterFailures.NOT_HOLLOW);
                 return false;
             }
 
-            var metadataClass = registerClass.GetCustomAttribute<HollowPackMetadata>();
+            var metadataClass = registerClass.CustomAttributes.FirstOrDefault(c => c.AttributeType.Name == "HollowPackMetadata");
             if (metadataClass == default)
             {
                 FailLog(asmName, RegisterFailures.BROKEN_METADATA);
                 return false;
             }
 
-            if(metadataClass.PackID == null || metadataClass.PackAuthor == null)
+            if(metadataClass.ConstructorArguments.Count < 2)
             {
                 FailLog(asmName, RegisterFailures.BROKEN_METADATA);
                 return false;
             }
-            packID = metadataClass.PackID;
-            packAuthor = metadataClass.PackAuthor;
+            packID = metadataClass.ConstructorArguments[0].Value as string;
+            packAuthor = metadataClass.ConstructorArguments[1].Value as string;
             return true;
 
             void FailLog(string title, RegisterFailures failureType)
@@ -250,14 +244,14 @@ namespace HollowZero
         internal static bool RegisterHollowPack(Assembly hollowPackAsm, out string packID, out string packAuthor)
         {
             string asmName = hollowPackAsm.GetName().Name;
-            var registerClass = hollowPackAsm.GetTypes().FirstOrDefault(t => t.BaseType == typeof(HollowPack));
+            var registerClass = hollowPackAsm.GetTypes().FirstOrDefault(t => t.BaseType.Name == "HollowPack");
             if (registerClass == default)
             {
                 FailLog(asmName, RegisterFailures.NOT_HOLLOW);
                 return false;
             }
 
-            var metadataClass = registerClass.GetCustomAttribute<HollowPackMetadata>();
+            var metadataClass = registerClass.CustomAttributes.FirstOrDefault(c => c.AttributeType.Name == "HollowPackMetadata");
             if (metadataClass == default)
             {
                 FailLog(asmName, RegisterFailures.BROKEN_METADATA);
@@ -274,8 +268,8 @@ namespace HollowZero
             var packInstance = Activator.CreateInstance(registerClass);
 
             onRegisterMethod.Invoke(packInstance, null);
-            packID = metadataClass.PackID;
-            packAuthor = metadataClass.PackAuthor;
+            packID = metadataClass.ConstructorArguments[0].Value as string;
+            packAuthor = metadataClass.ConstructorArguments[1].Value as string;
             return true;
 
             void FailLog(string title, RegisterFailures failureType)
@@ -367,6 +361,11 @@ namespace HollowZero
 
         }
 
+        public static void UpgradeModification(Modification mod = null)
+        {
+
+        }
+
         public static void AddCorruption(Corruption corruption = null)
         {
 
@@ -422,8 +421,6 @@ namespace HollowZero
                 return false;
             }
 
-            var hollowPackDll = Assembly.LoadFile(filepath + filename);
-
             return true;
         }
 
@@ -442,8 +439,8 @@ namespace HollowZero
     {
         public static Assembly LoadAssemblyThroughPF(string path)
         {
-            var renamedAssemblyResolver = typeof(HacknetChainloader).Assembly.GetType("RenamedAssemblyResolver");
-            var chainloaderFix = typeof(HacknetChainloader).Assembly.GetType("ChainloaderFix");
+            var renamedAssemblyResolver = typeof(HacknetChainloader).Assembly.GetType("BepInEx.Hacknet.RenamedAssemblyResolver", true);
+            var chainloaderFix = typeof(HacknetChainloader).Assembly.GetType("BepInEx.Hacknet.ChainloaderFix", true);
             var chFixRemaps = chainloaderFix.GetPrivateStaticField<Dictionary<string, Assembly>>("Remaps");
             var chFixRemapDefs = chainloaderFix.GetPrivateStaticField<Dictionary<string, AssemblyDefinition>>("RemapDefinitions");
 
@@ -469,6 +466,8 @@ namespace HollowZero
 
             chainloaderFix.SetPrivateStaticField("Remaps", chFixRemaps);
             chainloaderFix.SetPrivateStaticField("RemapDefinitions", chFixRemapDefs);
+
+            HollowZeroCore.knownPackAsms.Add(loaded);
 
             return loaded;
         }

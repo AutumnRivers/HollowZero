@@ -19,11 +19,23 @@ namespace HollowZero
             return (T)field.GetValue(null);
         }
 
+        public static T GetPrivateStaticProperty<T>(this Type type, string propName)
+        {
+            PropertyInfo prop = type.GetProperty(propName, staticFlags);
+            return (T)prop.GetValue(null);
+        }
+
         public static void SetPrivateStaticField(this Type type, string fieldName, object newValue)
         {
             Console.WriteLine($"{type.Name} / {fieldName} / {newValue}");
             FieldInfo field = type.GetField(fieldName, staticFlags);
             field.SetValue(null, newValue);
+        }
+
+        public static void SetPrivateStaticProperty(this Type type, string propName, object newValue)
+        {
+            PropertyInfo prop = type.GetProperty(propName, staticFlags);
+            prop.SetValue(null, newValue);
         }
     }
 }
