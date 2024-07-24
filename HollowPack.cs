@@ -8,8 +8,18 @@ namespace HollowZero.Packs
 {
     public abstract class HollowPack
     {
-        public abstract string PackID { get; set; }
-        public virtual string PackAuthor => "UNKNOWN";
         public abstract void OnRegister();
+    }
+
+    public class HollowPackMetadata : Attribute
+    {
+        public HollowPackMetadata(string id, string author)
+        {
+            PackID = id;
+            PackAuthor = author;
+        }
+
+        public string PackID { get; protected set; }
+        public string PackAuthor { get; protected set; }
     }
 }

@@ -76,6 +76,7 @@
   <ItemGroup>
     <Compile Include="Actions\InfecTrackerActions.cs" />
     <Compile Include="Commands\DebugCommands.cs" />
+    <Compile Include="Commands\Guidebook.cs" />
     <Compile Include="Commands\QuickStatCommands.cs" />
     <Compile Include="Daemons\Event\ChoiceEventDaemon.cs" />
     <Compile Include="Daemons\Event\Choices\TestChoiceEvents.cs" />
@@ -85,12 +86,16 @@
     <Compile Include="Executables\InfecTracker.cs" />
     <Compile Include="Extensions\ColorExtensions.cs" />
     <Compile Include="Extensions\ListExtensions.cs" />
+    <Compile Include="Extensions\ReflectionHelpers.cs" />
     <Compile Include="Fixes\DaemonContentFix.cs" />
     <Compile Include="HollowPack.cs" />
     <Compile Include="HollowZeroCore.cs" />
     <Compile Include="Nodes\NodeGenerator.cs" />
     <Compile Include="Nodes\NodeManager.cs" />
     <Compile Include="Patches\CommandDisabler.cs" />
+    <Compile Include="Patches\GuidebookEntries.cs" />
+    <Compile Include="Patches\GuidebookPatch.cs" />
+    <Compile Include="Patches\InformAboutPacks.cs" />
     <Compile Include="Patches\ListLoadedPacks.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

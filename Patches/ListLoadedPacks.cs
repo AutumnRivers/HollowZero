@@ -24,10 +24,10 @@ namespace HollowZero.Patches
         [HarmonyPatch(typeof(ExtensionsMenuScreen),nameof(ExtensionsMenuScreen.DrawExtensionInfoDetail))]
         public static bool AddLoadedPacks(Vector2 drawpos, Rectangle dest, SpriteBatch sb, ScreenManager screenMan, ref ExtensionInfo info)
         {
-            if (HollowZeroCore.loadedPacks.Count == 0 || hasListed) return true;
+            if (HollowZeroCore.knownPacks.Count == 0 || hasListed) return true;
 
             StringBuilder packList = new StringBuilder("\n\nCurrently loaded Hollow Packs:\n");
-            foreach(var pack in HollowZeroCore.loadedPacks)
+            foreach(var pack in HollowZeroCore.knownPacks)
             {
                 packList.Append($"* \"{pack.Key}\" by {pack.Value}\n");
             }

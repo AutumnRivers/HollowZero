@@ -47,12 +47,12 @@ namespace HollowZero.Daemons
             RenderedRectangle.doRectangle(bounds.X, startingHeight - (HSEP_HEIGHT / 2), bounds.Width, HSEP_HEIGHT, Color.White);
         }
 
-        protected Vector2 GetStringSize(SpriteFont font, string content)
+        internal static Vector2 GetStringSize(SpriteFont font, string content)
         {
             return font.MeasureString(content);
         }
 
-        protected int GetStringHeight(SpriteFont font, string content)
+        internal static int GetStringHeight(SpriteFont font, string content)
         {
             return (int)Math.Ceiling(GetStringSize(font, content).Y);
         }

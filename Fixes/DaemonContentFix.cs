@@ -13,7 +13,6 @@ using MonoMod.Cil;
 using Mono.Cecil.Cil;
 
 using System.Reflection;
-using Pathfinder.Util.XML;
 
 namespace HollowZero.Fixes
 {
