@@ -83,6 +83,8 @@
     <Compile Include="Daemons\Event\DialogueEventDaemon.cs" />
     <Compile Include="Daemons\Event\EventDaemon.cs" />
     <Compile Include="Daemons\HollowDaemon.cs" />
+    <Compile Include="Defaults\DefaultMalware.cs" />
+    <Compile Include="Executables\Cryptominer.cs" />
     <Compile Include="Executables\InfecTracker.cs" />
     <Compile Include="Extensions\ColorExtensions.cs" />
     <Compile Include="Extensions\ListExtensions.cs" />
@@ -97,6 +99,8 @@
     <Compile Include="Patches\GuidebookPatch.cs" />
     <Compile Include="Patches\InformAboutPacks.cs" />
     <Compile Include="Patches\ListLoadedPacks.cs" />
+    <Compile Include="Patches\PersistentEffects\HollowTimer.cs" />
+    <Compile Include="Patches\PersistentEffects\MalwareEffects.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup />

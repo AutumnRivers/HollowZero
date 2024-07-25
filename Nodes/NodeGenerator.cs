@@ -20,6 +20,9 @@ namespace HollowZero.Nodes
             ip ??= GetNewIP();
             OS os = OS.currentInstance;
             Computer newNode = new Computer(title, ip, os.netMap.getRandomPosition(), 0, 4, os);
+            newNode.idName = GenerateID();
+
+            if (daemons == null) return newNode;
 
             foreach(var daemon in daemons)
             {
@@ -27,13 +30,46 @@ namespace HollowZero.Nodes
             }
             newNode.initDaemons();
 
+            foreach(var node in connectedComps)
+            {
+                var onNetmap = os.netMap.nodes.FirstOrDefault(c => c == node);
+                if (onNetmap == default) continue;
+
+                newNode.links.Add(os.netMap.nodes.IndexOf(node));
+            }
+
             return newNode;
+
+            string GenerateID()
+            {
+                Random random = new Random();
+                var id = random.Next(0, 1000).ToString();
+
+                if(os.netMap.nodes.Exists(c => c.idName == id))
+                {
+                    return GenerateID();
+                }
+                return id;
+            }
         }
 
-        public static void GenerateAndAddComputer(string title, List<BaseDaemon> daemons, string ip = null)
+        public static Computer GenerateComputer(string title)
+        {
+            return GenerateComputer(title, null);
+        }
+
+        public static Computer GenerateAndAddComputer(string title, List<BaseDaemon> daemons, string ip = null)
         {
             var node = GenerateComputer(title, daemons, ip: ip);
             NodeManager.AddNode(node);
+            return node;
+        }
+
+        public static Computer GenerateAndAddComputer(string title)
+        {
+            var node = GenerateComputer(title, null);
+            NodeManager.AddNode(node);
+            return node;
         }
 
         public static void AddNewLinkToComp(Computer sourceComputer, Computer targetComputer)

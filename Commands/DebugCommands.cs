@@ -44,5 +44,30 @@ namespace HollowZero.Commands
 
             HollowZeroCore.DecreaseInfection(amount);
         }
+
+        public static void AddRandomMalware(OS os, string[] args)
+        {
+            if (!OS.DEBUG_COMMANDS)
+            {
+                os.validCommand = false;
+                return;
+            }
+
+            HollowZeroCore.AddMalware();
+        }
+
+        public static void ClearMalware(OS os, string[] args)
+        {
+            if (!OS.DEBUG_COMMANDS)
+            {
+                os.validCommand = false;
+                return;
+            }
+
+            foreach(var mal in HollowZeroCore.CollectedMalware.ToArray())
+            {
+                HollowZeroCore.RemoveMalware(mal);
+            }
+        }
     }
 }

@@ -50,7 +50,6 @@ namespace HollowZero.Daemons.Event
         {
             base.initFiles();
 
-            //choiceEvent = TestChoiceEvents.choiceEvents.GetRandom();
             choiceEvent = PossibleEvents.GetRandom();
 
             EventTitle = choiceEvent.Title;
@@ -76,48 +75,40 @@ namespace HollowZero.Daemons.Event
             for (var i = choiceEvent.Choices.Count - 1; i > -1; i--)
             {
                 var choice = choiceEvent.Choices[i];
-                bool disable = false;
                 Color buttonColor = choice.Color;
+                var b = new HollowButton(choice.ButtonID, bounds.X + 25,
+                    bounds.Y + bounds.Height - buttonOffset, bounds.Width - 50, 50, $"{choice.Title}\n{choice.Subtext}", buttonColor);
 
                 if(choice.ChoiceType == "takecreds" && HollowZeroCore.PlayerCredits - choice.ChoiceAmount < 0)
                 {
-                    disable = true;
-                    buttonColor = new Color(100, 100, 100);
+                    b.Disabled = true;
+                    b.DisabledMessage = "<!> You don't have enough credits!";
                 }
 
                 foreach(var chance in choice.Chances)
                 {
                     if(chance.Value.ChoiceType == "takecreds" && HollowZeroCore.PlayerCredits - chance.Value.ChoiceAmount < 0)
                     {
-                        disable = true;
-                        buttonColor = new Color(100, 100, 100);
+                        b.Disabled = true;
+                        b.DisabledMessage = "<!> You don't have enough credits to take that risk!";
                     }
                 }
 
-                string bText = $"{choice.Title}\n{choice.Subtext}";
-                var b = Button.doButton(choice.ButtonID, bounds.X + 25,
-                    bounds.Y + bounds.Height - buttonOffset, bounds.Width - 50, 50, bText, buttonColor);
-                if (b)
+                b.OnPressed = delegate ()
                 {
-                    if(disable)
-                    {
-                        OS.currentInstance.warningFlash();
-                        OS.currentInstance.terminal.writeLine("<!> You don't have enough resources for that!");
-                        return;
-                    }
-
-                    if(choice.OnPressed != null)
+                    if (choice.OnPressed != null)
                     {
                         choice.OnPressed.Invoke();
-                    } else
+                    }
+                    else
                     {
                         int luck = choice.TotalLuckValue;
                         Random random = new Random();
                         int luckValue = random.Next(0, luck);
 
-                        foreach(var chance in choice.Chances)
+                        foreach (var chance in choice.Chances)
                         {
-                            if(luckValue < chance.Key)
+                            if (luckValue < chance.Key)
                             {
                                 chance.Value.Trigger.Invoke();
                                 break;
@@ -127,7 +118,8 @@ namespace HollowZero.Daemons.Event
 
                     OS.currentInstance.display.command = "probe";
                     RemoveDaemon();
-                }
+                };
+                b.DoButton();
                 buttonOffset += 60;
             }
         }

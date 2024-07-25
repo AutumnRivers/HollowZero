@@ -11,6 +11,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 using Pathfinder.Daemon;
+using Pathfinder.GUI;
 
 namespace HollowZero.Daemons
 {
@@ -65,6 +66,51 @@ namespace HollowZero.Daemons
 
             comp.daemons.Remove(this);
             comp.initDaemons();
+        }
+
+        public static void DoMalwarePowerAction()
+        {
+            foreach (var malware in HollowZeroCore.CollectedMalware.Where(m => m.Trigger == Malware.MalwareTrigger.EVERY_ACTION))
+            {
+                malware.PowerAction.Invoke(malware.PowerLevel);
+            }
+        }
+    }
+
+    public class HollowButton
+    {
+        public HollowButton(int id, int x, int y, int width, int height, string text, Color color)
+        {
+            ButtonID = id;
+            X = x; Y = y; Width = width; Height = height;
+            Text = text; Color = color;
+        }
+
+        public int X; public int Y; public int Width; public int Height;
+        public string Text; public Color Color;
+
+        public bool Disabled = false;
+        public string DisabledMessage = "<!> You don't have enough resources for that!";
+        public int ButtonID;
+
+        public Action OnPressed;
+
+        public void DoButton()
+        {
+            if (Disabled) Color = Utils.SlightlyDarkGray;
+
+            if(Button.doButton(ButtonID, X, Y, Width, Height, Text, Color))
+            {
+                if(Disabled)
+                {
+                    OS.currentInstance.warningFlash();
+                    OS.currentInstance.terminal.writeLine(DisabledMessage);
+                    return;
+                }
+
+                HollowDaemon.DoMalwarePowerAction();
+                OnPressed.Invoke();
+            }
         }
     }
 }

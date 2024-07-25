@@ -10,16 +10,21 @@ using Hacknet.Gui;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
+using Pathfinder.Util;
+
 namespace HollowZero.Daemons.Event
 {
     public class EventDaemon : HollowDaemon
     {
         public EventDaemon(Computer computer, string serviceName, OS os) : base(computer, serviceName, os) { }
 
+        [XMLStorage]
+        public string IsOneShot = "false";
+
+        public bool OneShot => bool.Parse(IsOneShot);
+
         public string EventTitle;
         public string EventContent;
-
-        public bool OneShot = true;
 
         public readonly SpriteFont TitleFont = GuiData.font;
         public readonly SpriteFont ContentFont = GuiData.smallfont;

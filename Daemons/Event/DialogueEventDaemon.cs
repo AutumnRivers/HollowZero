@@ -16,9 +16,6 @@ namespace HollowZero.Daemons.Event
         [XMLStorage]
         public string DEventTitle = "Dialogue Event Title";
 
-        [XMLStorage]
-        public string IsOneShot = "true";
-
         [XMLStorage(IsContent = true)]
         public string DEventContent = "Dialogue Event Content";
 
@@ -35,8 +32,6 @@ namespace HollowZero.Daemons.Event
 
             EventTitle = DEventTitle;
             EventContent = DEventContent;
-
-            OneShot = bool.Parse(IsOneShot);
         }
 
         public override void draw(Rectangle bounds, SpriteBatch sb)
@@ -44,14 +39,15 @@ namespace HollowZero.Daemons.Event
             base.draw(bounds, sb);
 
             DrawEventTemplate(bounds);
-            var continueButton = Button.doButton(ButtonID, bounds.X + 25, bounds.Y + bounds.Height - 75, 200, 50, CONTINUE_TEXT, ButtonColor);
 
-            if(continueButton)
+            var continueButton = new HollowButton(ButtonID, bounds.X + 25, bounds.Y + bounds.Height - 75, 200, 50, CONTINUE_TEXT, ButtonColor);
+            continueButton.OnPressed = delegate ()
             {
                 OS.currentInstance.display.command = "probe";
                 if (!OneShot) return;
                 RemoveDaemon();
-            }
+            };
+            continueButton.DoButton();
         }
     }
 }

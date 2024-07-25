@@ -36,6 +36,7 @@ using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using BepInEx.Bootstrap;
 using HollowZero.Patches;
+using Pathfinder.Event.Gameplay;
 
 namespace HollowZero
 {
@@ -105,7 +106,6 @@ namespace HollowZero
             foreach (var pck in possiblePacks)
             {
                 if (!File.Exists(pck)) continue;
-                //var packAsm = Assembly.LoadFrom(pck);
                 var packAsm = HollowPFManager.LoadAssemblyThroughPF(pck);
                 HZLog($"Attempting to get metadata of Hollow Pack {packAsm.GetName()}...");
 
@@ -132,12 +132,27 @@ namespace HollowZero
             CommandManager.RegisterCommand("guidebook", GuidebookCommands.ActivateGuidebook);
 
             // Debug
-            CommandManager.RegisterCommand("upinf", DebugCommands.IncreaseInfection, false, true);
-            CommandManager.RegisterCommand("downinf", DebugCommands.DecreaseInfection, false, true);
+            if(OS.DEBUG_COMMANDS)
+            {
+                CommandManager.RegisterCommand("upinf", DebugCommands.IncreaseInfection, false, true);
+                CommandManager.RegisterCommand("downinf", DebugCommands.DecreaseInfection, false, true);
+                CommandManager.RegisterCommand("addmal", DebugCommands.AddRandomMalware, false, true);
+                CommandManager.RegisterCommand("clearmal", DebugCommands.ClearMalware, false, true);
+            }
 
-            Action<OSLoadedEvent> extInit = ExtensionInit;
-            EventManager<OSLoadedEvent>.AddHandler(extInit);
-
+            HZLog("Registering game events...");
+            EventManager<OSLoadedEvent>.AddHandler(delegate (OSLoadedEvent osl)
+            {
+                ExtensionInit(osl);
+            });
+            EventManager<OSUpdateEvent>.AddHandler(delegate (OSUpdateEvent osu)
+            {
+                MalwareEffects.ApplyPersistentMalwareEffects(osu);
+            });
+            EventManager<OSUpdateEvent>.AddHandler(delegate (OSUpdateEvent osu)
+            {
+                HollowTimer.DecreaseTimers(osu);
+            });
             return true;
         }
 
@@ -168,6 +183,8 @@ namespace HollowZero
                 GuidebookTitles.Add(entry.ShortTitle);
             }
             GuidebookPatch.GuidebookEntryTitles = GuidebookTitles;
+
+            PossibleMalware.AddRange(DefaultMalware.MalwareCollection);
         }
 
         private enum RegisterFailures
@@ -348,12 +365,42 @@ namespace HollowZero
 
         public static void AddMalware(Malware malware = null)
         {
-            
+            Malware GetMalware()
+            {
+                Malware m = GetRandomMalware();
+                if(CollectedMalware.Contains(m))
+                {
+                    return GetMalware();
+                }
+                return m;
+            }
+
+            malware ??= GetMalware();
+
+            CollectedMalware.Add(malware);
+            if(malware.SetTimer)
+            {
+                MalwareEffects.MalwareTimers.Add(malware, malware.PowerLevel);
+            }
         }
 
         public static void RemoveMalware(Malware malware = null)
         {
-            
+            malware ??= CollectedMalware.GetRandom();
+
+            List<Computer> affectedComps = new List<Computer>();
+            if(MalwareEffects.AffectedComps.Exists(c => c.AppliedEffects.Contains(malware.DisplayName)))
+            {
+                foreach (var comp in MalwareEffects.AffectedComps.Where(c => c.AppliedEffects.Contains(malware.DisplayName)))
+                {
+                    comp.AppliedEffects.Remove(malware.DisplayName);
+                    var affectedComp = OS.currentInstance.netMap.nodes.First(c => c.idName == comp.CompID);
+                    affectedComps.Add(affectedComp);
+                }
+            }
+
+            malware.RemoveAction(malware.PowerLevel, affectedComps);
+            CollectedMalware.Remove(malware);
         }
 
         public static void AddModification(Modification mod = null)
@@ -371,7 +418,10 @@ namespace HollowZero
 
         }
 
-        //private Malware GetRandomMalware() { }
+        public static Malware GetRandomMalware()
+        {
+            return PossibleMalware.GetRandom();
+        }
     }
 
     public class Malware
@@ -391,7 +441,13 @@ namespace HollowZero
         public string Description { get; set; }
         public int PowerLevel { get; set; }
         public MalwareTrigger Trigger { get; set; }
-        public Action Action { get; set; }
+
+        public Action<int> PowerAction { get; set; }
+        public Action<Computer> CompAction { get; set; }
+
+        public Action<int, List<Computer>> RemoveAction { get; set; }
+
+        public bool SetTimer = false;
     }
 
     public class Modification
