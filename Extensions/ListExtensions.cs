@@ -15,5 +15,13 @@ namespace HollowZero
 
             return e[index];
         }
+
+        public static T GetRandom<T>(this IEnumerable<T> e)
+        {
+            if (!e.Any()) return default;
+            Random random = new Random();
+            int index = random.Next(e.Count());
+            return e.ElementAtOrDefault(index);
+        }
     }
 }
