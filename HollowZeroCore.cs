@@ -37,6 +37,8 @@ using MonoMod.Cil;
 using BepInEx.Bootstrap;
 using HollowZero.Patches;
 using Pathfinder.Event.Gameplay;
+using Hacknet.Gui;
+using Microsoft.Xna.Framework;
 
 namespace HollowZero
 {
@@ -312,11 +314,57 @@ namespace HollowZero
             }
         }
 
+        private static void Overload()
+        {
+            OS os = OS.currentInstance;
+            os.IncConnectionOverlay.sound1.Play();
+
+            CustomEffects.CurrentEffect = DrawOverload;
+            CustomEffects.EffectsActive = true;
+        }
+
+        internal static void DrawOverload()
+        {
+            int stage = CustomEffects.CurrentStage;
+            Action stageUpper = delegate ()
+            {
+                CustomEffects.CurrentStage++;
+            };
+            Rectangle playerBounds = GuiData.spriteBatch.GraphicsDevice.Viewport.Bounds;
+            double lastGameTime = OS.currentInstance.lastGameTime.ElapsedGameTime.TotalSeconds;
+
+            switch(stage)
+            {
+                case 0:
+                    RenderedRectangle.doRectangle(playerBounds.X, playerBounds.Y, playerBounds.Width, playerBounds.Height, Color.White);
+                    HollowTimer.AddTimer("overload_upper", 0.3f, stageUpper);
+                    break;
+                case 1:
+                    RenderedRectangle.doRectangle(playerBounds.X, playerBounds.Y, playerBounds.Width, playerBounds.Height, Color.Black);
+                    HollowDaemon.DrawTrueCenteredText(playerBounds, "-- CRITICAL ERROR - RECOVERING --", GuiData.font, Color.Red);
+                    HollowTimer.AddTimer("overload_upper_1", 3f, stageUpper);
+                    break;
+                case 2:
+                    RenderedRectangle.doRectangle(playerBounds.X, playerBounds.Y, playerBounds.Width, playerBounds.Height,
+                        Color.Black * (CustomEffects.RectOpacity / 100));
+                    CustomEffects.RectOpacity -= (float)lastGameTime * 25;
+                    if(CustomEffects.RectOpacity <= 0.0f)
+                    {
+                        CustomEffects.CurrentStage++;
+                    }
+                    break;
+                case 3:
+                    CustomEffects.ResetEffect();
+                    AddMalware();
+                    break;
+            }
+        }
+
         public static void IncreaseInfection(int amount)
         {
             if(InfectionLevel + amount >= 100)
             {
-                // add malware...
+                Overload();
                 InfectionLevel = 0;
             } else
             {
@@ -380,8 +428,11 @@ namespace HollowZero
             CollectedMalware.Add(malware);
             if(malware.SetTimer)
             {
-                MalwareEffects.MalwareTimers.Add(malware, malware.PowerLevel);
+                //MalwareEffects.MalwareTimers.Add(malware, malware.PowerLevel);
+                MalwareEffects.AddMalwareTimer(malware, malware.PowerLevel);
             }
+
+            MalwareOverlay.CurrentMalware = malware;
         }
 
         public static void RemoveMalware(Malware malware = null)

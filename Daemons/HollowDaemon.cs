@@ -32,6 +32,19 @@ namespace HollowZero.Daemons
             GuiData.spriteBatch.DrawString(font, text, textPosition, textColor);
         }
 
+        internal static void DrawCenteredScaleText(Rectangle bounds, string text, SpriteFont font, int startingHeight, Color textColor = default,
+            float scale = 1.0f)
+        {
+            textColor = textColor == default ? Color.White : textColor;
+            Vector2 textVector = font.MeasureString(text) * scale;
+            Vector2 textPosition = new Vector2(
+                (float)(bounds.X + bounds.Width / 2) - textVector.X / 2f,
+                (float)(startingHeight) - textVector.Y / 2f);
+
+            GuiData.spriteBatch.DrawString(font, text, textPosition, textColor, 0f, Vector2.Zero, scale,
+                SpriteEffects.None, 0.1f);
+        }
+
         internal static void DrawTrueCenteredText(Rectangle bounds, string text, SpriteFont font, Color textColor = default)
         {
             textColor = textColor == default ? Color.White : textColor;

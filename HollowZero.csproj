@@ -95,6 +95,7 @@
     <Compile Include="Nodes\NodeGenerator.cs" />
     <Compile Include="Nodes\NodeManager.cs" />
     <Compile Include="Patches\CommandDisabler.cs" />
+    <Compile Include="Patches\CustomEffects.cs" />
     <Compile Include="Patches\GuidebookEntries.cs" />
     <Compile Include="Patches\GuidebookPatch.cs" />
     <Compile Include="Patches\InformAboutPacks.cs" />
