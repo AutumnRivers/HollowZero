@@ -10,11 +10,15 @@ using BepInEx.Hacknet;
 
 using Hacknet;
 using Hacknet.Extensions;
+using Hacknet.Gui;
 
 using Pathfinder;
 using Pathfinder.Daemon;
 
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+
+using Newtonsoft.Json;
 
 using HollowZero.Daemons;
 using HollowZero.Daemons.Event;
@@ -22,8 +26,10 @@ using HollowZero.Executables;
 using HollowZero.Actions;
 using HollowZero.Commands;
 using HollowZero.Packs;
+using HollowZero.Patches;
 
 using Pathfinder.Event.Loading;
+using Pathfinder.Event.Gameplay;
 using Pathfinder.Action;
 using Pathfinder.Event;
 using Pathfinder.Command;
@@ -32,13 +38,6 @@ using Pathfinder.Executable;
 using HarmonyLib;
 
 using Mono.Cecil;
-using Mono.Cecil.Cil;
-using MonoMod.Cil;
-using BepInEx.Bootstrap;
-using HollowZero.Patches;
-using Pathfinder.Event.Gameplay;
-using Hacknet.Gui;
-using Microsoft.Xna.Framework;
 
 namespace HollowZero
 {
@@ -90,6 +89,7 @@ namespace HollowZero
 
         internal static bool GuidebookIsActive { get; set; }
         internal static bool EnableTrinity { get; set; }
+        internal static string Mode { get; set; }
 
         public override bool Load()
         {
@@ -123,6 +123,8 @@ namespace HollowZero
             HZLog("Adding daemons...");
             DaemonManager.RegisterDaemon<DialogueEventDaemon>();
             DaemonManager.RegisterDaemon<ChoiceEventDaemon>();
+            DaemonManager.RegisterDaemon<ChanceEventDaemon>();
+            DaemonManager.RegisterDaemon<RestStopDaemon>();
 
             HZLog("Adding commands...");
             // Quick Stats
@@ -170,6 +172,12 @@ namespace HollowZero
 
         private static void ExtensionInit(OSLoadedEvent os_event)
         {
+            if(ReadExtensionConfigIfAny(out var config))
+            {
+                Mode = config.mode;
+                EnableTrinity = config.enableTrinity;
+            }
+
             var placeOnNetMap = new Stuxnet_HN.Actions.Nodes.PlaceOnNetMap
             {
                 StartingPosition = "topleft",
@@ -187,6 +195,19 @@ namespace HollowZero
             GuidebookPatch.GuidebookEntryTitles = GuidebookTitles;
 
             PossibleMalware.AddRange(DefaultMalware.MalwareCollection);
+        }
+
+        private static bool ReadExtensionConfigIfAny(out HollowConfig config)
+        {
+            config = null;
+            if (!File.Exists(DEFAULT_CONFIG_PATH + "/extension_config.json")) return false;
+
+            StreamReader configStream = new StreamReader(DEFAULT_CONFIG_PATH + "/extension_config.json");
+            var configString = configStream.ReadToEnd();
+            configStream.Close();
+
+            config = JsonConvert.DeserializeObject<HollowConfig>(configString);
+            return true;
         }
 
         private enum RegisterFailures
@@ -473,6 +494,41 @@ namespace HollowZero
         {
             return PossibleMalware.GetRandom();
         }
+    }
+
+    public class HollowConfig
+    {
+        /*
+         * Endless - Endless randomly generated layers
+         * Story - Set amount of pre-defined layers
+         * StoryWithEndless - Set amount of pre-defined layers followed by endless randomly generated layers
+         */
+        public string mode = "Endless";
+
+        /*
+         * Determines whether or not Trinity should be enabled, as she's technically one of my characters
+         * and would therefore break immersion on any extension that isn't mine.
+         * 
+         * If Trinity is disabled, her chance shop branding is simply replaced with generic branding.
+         */
+        public bool enableTrinity = true;
+
+        /*
+         * Whether or not to launch InfecTracker on extension start.
+         * If "mode" is set to "Endless," then this is ignored.
+         */
+        public bool launchInfecTracker = false;
+
+        /*
+         * If true, disables default malware, corruptions, events, etc... making it only possible for any
+         * of these things to be propogated by HZConfig or Hollow Packs.
+         */
+        public bool disableBuiltInAssets = false;
+
+        /*
+         * If set to true, commands that can cheese HZ such as probe and reboot will be disabled.
+         */
+        public bool disableCheeseCommands = true;
     }
 
     public class Malware

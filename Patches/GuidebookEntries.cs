@@ -1,23 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace HollowZero.Patches
 {
     internal static class DefaultGuidebookEntries
     {
-        /*internal static List<string> GuidebookEntryTitles = new List<string>()
-        {
-            "Basics - Basic Gameplay", "Basics - Infection", "Basics - Mods/Corruptions", "Basics - Fail States",
-            "Event - Dialogue", "Event - Choice", "Event - Chance", "Event - Unavoidable", "Event - Story",
-            "Econ. - Credits", "Econ. - Shops", "Econ. - Trinity", "Econ. - Antivirus", "Econ. - Gacha",
-            "Networks - Basics",
-            "Malware - Types",
-            "Misc. - Rest Stops", "Misc. - Assistants", "Misc. - Rivals"
-        };*/
-
         internal static readonly List<GuidebookEntry> entries = new List<GuidebookEntry>()
         {
             new GuidebookEntry()

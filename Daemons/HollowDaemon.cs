@@ -17,7 +17,7 @@ namespace HollowZero.Daemons
 {
     public class HollowDaemon : BaseDaemon
     {
-        internal HollowDaemon(Computer computer, string serviceName, OS os) : base(computer, serviceName, os) { }
+        public HollowDaemon(Computer computer, string serviceName, OS os) : base(computer, serviceName, os) { }
 
         public const int HSEP_HEIGHT = 4;
 
@@ -79,6 +79,8 @@ namespace HollowZero.Daemons
 
             comp.daemons.Remove(this);
             comp.initDaemons();
+
+            OS.currentInstance.display.command = "probe";
         }
 
         public static void DoMalwarePowerAction()

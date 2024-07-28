@@ -78,11 +78,14 @@
     <Compile Include="Commands\DebugCommands.cs" />
     <Compile Include="Commands\Guidebook.cs" />
     <Compile Include="Commands\QuickStatCommands.cs" />
+    <Compile Include="Daemons\Event\ChanceEventDaemon.cs" />
     <Compile Include="Daemons\Event\ChoiceEventDaemon.cs" />
     <Compile Include="Daemons\Event\Choices\TestChoiceEvents.cs" />
     <Compile Include="Daemons\Event\DialogueEventDaemon.cs" />
     <Compile Include="Daemons\Event\EventDaemon.cs" />
+    <Compile Include="Daemons\Event\UnavEventDaemon.cs" />
     <Compile Include="Daemons\HollowDaemon.cs" />
+    <Compile Include="Daemons\RestStopDaemon.cs" />
     <Compile Include="Defaults\DefaultMalware.cs" />
     <Compile Include="Executables\Cryptominer.cs" />
     <Compile Include="Executables\InfecTracker.cs" />

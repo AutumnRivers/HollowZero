@@ -116,7 +116,6 @@ namespace HollowZero.Daemons.Event
                         }
                     }
 
-                    OS.currentInstance.display.command = "probe";
                     RemoveDaemon();
                 };
                 b.DoButton();

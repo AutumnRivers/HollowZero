@@ -1,16 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 using Hacknet;
 using Hacknet.Gui;
 
 using HarmonyLib;
+
 using HollowZero.Daemons;
+
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 
 namespace HollowZero
 {
@@ -50,12 +47,11 @@ namespace HollowZero
     public class MalwareOverlay
     {
         public static Malware CurrentMalware;
-        private static int CurrentStage;
 
         private const string HEADER_TEXT = "GAINED MALWARE";
         private const float TARGET_BACKGROUND_OPACITY = 50.0f;
 
-        private const float BACKGROUND_FADE_TIME = 2.5f;
+        private const float BACKGROUND_FADE_TIME = 2.0f;
         private const float TEXT_FADE_TIME = 3.0f;
 
         private static float BackgroundOpacity = 0.0f;
@@ -165,17 +161,14 @@ namespace HollowZero
             if (TextOpacity <= 1f) return;
             float yOffset = (PlayerBounds.Center.Y - (PopupBounds.Height / 2f)) + (PopupBounds.Height * (1f / 4f));
             float opacity = TextOpacity / 100f;
-            //HollowDaemon.DrawCenteredText(PlayerBounds, header, GuiData.font, (int)yOffset, TextColor * opacity);
             HollowDaemon.DrawCenteredScaleText(PlayerBounds, header, GuiData.font, (int)yOffset, TextColor * opacity, 2.5f);
 
             RenderedRectangle.doRectangle(PlayerBounds.X + 30, PopupBounds.Center.Y - 1, PlayerBounds.Width - 60, 3, Color.Red * opacity);
 
             yOffset = PlayerBounds.Center.Y + (PopupBounds.Height * (1f / 6f));
-            //HollowDaemon.DrawCenteredText(PlayerBounds, subheader, GuiData.font, (int)yOffset, TextColor * opacity);
             HollowDaemon.DrawCenteredScaleText(PlayerBounds, subheader, GuiData.font, (int)yOffset, TextColor * opacity, 1.5f);
             yOffset = PlayerBounds.Center.Y + (PopupBounds.Height * (2f / 6f));
             context = Utils.SuperSmartTwimForWidth(context, (int)(PlayerBounds.Width / 1.2f), GuiData.smallfont);
-            //HollowDaemon.DrawCenteredText(PlayerBounds, context, GuiData.smallfont, (int)yOffset, TextColor * opacity);
             HollowDaemon.DrawCenteredScaleText(PlayerBounds, context, GuiData.smallfont, (int)yOffset, TextColor * opacity, 1.2f);
         }
     }
