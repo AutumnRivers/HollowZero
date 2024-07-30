@@ -69,5 +69,47 @@ namespace HollowZero.Commands
                 HollowZeroCore.RemoveMalware(mal);
             }
         }
+
+        public static void AddCredits(OS os, string[] args)
+        {
+            if (!OS.DEBUG_COMMANDS)
+            {
+                os.validCommand = false;
+                return;
+            }
+
+            if (args.Length < 2)
+            {
+                os.write("no");
+                os.validCommand = false;
+                return;
+            }
+
+            HollowZeroCore.AddPlayerCredits(int.Parse(args[1]));
+        }
+
+        public static void RemoveCredits(OS os, string[] args)
+        {
+            if (!OS.DEBUG_COMMANDS)
+            {
+                os.validCommand = false;
+                return;
+            }
+
+            if (args.Length < 2)
+            {
+                os.write("woah now hold on there buddy you didnt put any args in. if you wanna remove all creds then do 'all' thanks");
+                os.validCommand = false;
+                return;
+            }
+
+            if (args[1] == "all")
+            {
+                HollowZeroCore.RemovePlayerCredits(10000);
+            } else
+            {
+                HollowZeroCore.RemovePlayerCredits(int.Parse(args[1]));
+            }
+        }
     }
 }

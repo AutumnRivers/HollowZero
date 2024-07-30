@@ -38,6 +38,7 @@ using Pathfinder.Executable;
 using HarmonyLib;
 
 using Mono.Cecil;
+using HollowZero.Daemons.Shop;
 
 namespace HollowZero
 {
@@ -125,6 +126,7 @@ namespace HollowZero
             DaemonManager.RegisterDaemon<ChoiceEventDaemon>();
             DaemonManager.RegisterDaemon<ChanceEventDaemon>();
             DaemonManager.RegisterDaemon<RestStopDaemon>();
+            DaemonManager.RegisterDaemon<ProgramShopDaemon>();
 
             HZLog("Adding commands...");
             // Quick Stats
@@ -142,6 +144,8 @@ namespace HollowZero
                 CommandManager.RegisterCommand("downinf", DebugCommands.DecreaseInfection, false, true);
                 CommandManager.RegisterCommand("addmal", DebugCommands.AddRandomMalware, false, true);
                 CommandManager.RegisterCommand("clearmal", DebugCommands.ClearMalware, false, true);
+                CommandManager.RegisterCommand("addcreds", DebugCommands.AddCredits, false, true);
+                CommandManager.RegisterCommand("delcreds", DebugCommands.RemoveCredits, false, true);
             }
 
             HZLog("Registering game events...");
@@ -493,6 +497,19 @@ namespace HollowZero
         public static Malware GetRandomMalware()
         {
             return PossibleMalware.GetRandom();
+        }
+    }
+
+    public static class PlayerManager
+    {
+        public static void AddProgramToPlayerPC(string programName, string programContent)
+        {
+            FileEntry programFile = new FileEntry(programContent, $"{programName}.exe");
+            Folder binFolder = OS.currentInstance.thisComputer.getFolderFromPath("bin");
+
+            if (binFolder.containsFile($"{programName}.exe")) return;
+
+            binFolder.files.Add(programFile);
         }
     }
 

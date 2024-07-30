@@ -63,6 +63,11 @@ namespace HollowZero.Daemons.Event
             base.navigatedTo();
 
             comp.name = choiceEvent.Title;
+
+            if(choiceEvent.Unavoidable)
+            {
+                UnavoidableEventDaemon.LockUpModules();
+            }
         }
 
         public override void draw(Rectangle bounds, SpriteBatch sb)
@@ -116,6 +121,11 @@ namespace HollowZero.Daemons.Event
                         }
                     }
 
+                    if(choiceEvent.Unavoidable)
+                    {
+                        UnavoidableEventDaemon.UnlockModules();
+                    }
+
                     RemoveDaemon();
                 };
                 b.DoButton();
@@ -164,6 +174,11 @@ namespace HollowZero.Daemons.Event
                     {
                         Title = xml.ReadRequiredAttribute("Title")
                     };
+
+                    if(xml.MoveToAttribute("Unavoidable"))
+                    {
+                        ev.Unavoidable = bool.Parse(xml.ReadContentAsString().ToLower());
+                    }
 
                     do
                     {
@@ -341,6 +356,7 @@ namespace HollowZero.Daemons.Event
     {
         public string Title;
         public string Content;
+        public bool Unavoidable = false;
         public List<Choice> Choices = new List<Choice>();
     }
 
