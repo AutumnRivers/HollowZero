@@ -576,15 +576,68 @@ namespace HollowZero
 
     public class Modification
     {
-        public Modification() { }
+        public Modification(string name)
+        {
+            DisplayName = name;
+        }
+
+        public enum ModTriggers
+        {
+            EnterNode, ExitNode, GainAdminAccess,
+            OnForkbomb, OnOverload, OnInfectionGain,
+            OnTraceTrigger
+        }
 
         public string DisplayName { get; set; }
-        public string Description { get; set; }
+        public virtual string Description { get; set; }
         public List<int> PowerLevels { get; set; }
-        public bool Upgraded { get; set; }
+        public ModTriggers Trigger { get; set; }
+        public bool Upgraded = false;
+        public Modification UpgradedModification { get; set; }
+
+        public List<string> affectedCompIDs = new List<string>();
+        public virtual Action<Computer> Effect { get; set; }
+        public virtual Func<Computer, bool> ChanceEffect { get; set; }
+        public Action<int> AltEffect { get; set; }
+        public Action<float> TraceEffect { get; set; }
+
+        public bool IsBlocker = false;
+        public const bool IsCorruption = false;
+
+        public bool AddEffectToComp(Computer comp)
+        {
+            if (affectedCompIDs.Contains(comp.idName)) return false;
+
+            affectedCompIDs.Add(comp.idName);
+            return true;
+        }
+
+        public void OnLayerChange()
+        {
+            affectedCompIDs.Clear();
+        }
+
+        public void Discard()
+        {
+            if(HollowZeroCore.CollectedMods.Contains(this))
+            {
+                HollowZeroCore.CollectedMods.Remove(this);
+            }
+        }
+
+        public virtual void Upgrade()
+        {
+            if (Upgraded) return;
+            Upgraded = true;
+        }
     }
 
-    public class Corruption : Modification { }
+    public class Corruption : Modification
+    {
+        public Corruption(string name) : base(name) { }
+
+        public new const bool IsCorruption = true;
+    }
 
     public static class HollowGlobalManager
     {

@@ -89,6 +89,7 @@
     <Compile Include="Daemons\Shop\ProgramShopDaemon.cs" />
     <Compile Include="Daemons\Shop\ShopDaemon.cs" />
     <Compile Include="Defaults\DefaultMalware.cs" />
+    <Compile Include="Defaults\DefaultModifications.cs" />
     <Compile Include="Executables\Cryptominer.cs" />
     <Compile Include="Executables\InfecTracker.cs" />
     <Compile Include="Extensions\ColorExtensions.cs" />
