@@ -1,6 +1,7 @@
 ﻿using Pathfinder.Event.Gameplay;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace HollowZero
 {
@@ -13,6 +14,7 @@ namespace HollowZero
             new Dictionary<Tuple<string, float, Action>, Tuple<string, float, Action>>();
 
         public static readonly List<string> ActiveTimerIDs = new List<string>();
+        public static readonly Dictionary<string, float> RepeatTimers = new Dictionary<string, float>();
 
         internal static void DecreaseTimers(OSUpdateEvent updateEvent)
         {
@@ -24,8 +26,16 @@ namespace HollowZero
                 if(timer.Item2 - seconds <= 0)
                 {
                     timer.Item3.Invoke();
-                    Console.WriteLine($"Removing timer {timer.Item1}...");
-                    timerRemovalQueue.Add(timer);
+
+                    if(RepeatTimers.ContainsKey(timer.Item1))
+                    {
+                        var newTimer = Tuple.Create(timer.Item1, RepeatTimers[timer.Item1], timer.Item3);
+                        timerChangeQueue.Add(timer, newTimer);
+                    } else
+                    {
+                        Console.WriteLine($"Removing timer {timer.Item1}...");
+                        timerRemovalQueue.Add(timer);
+                    }
                     continue;
                 } else
                 {
@@ -78,6 +88,49 @@ namespace HollowZero
             if (ActiveTimerIDs.Contains(id)) return;
             ActiveTimerIDs.Add(id);
             timerAdditionQueue.Add(Tuple.Create(id, timeInSeconds, action));
+        }
+
+        public static void AddTimer(string id, float timeInSeconds, Action action, bool repeat)
+        {
+            AddTimer(id, timeInSeconds, action);
+            if (!repeat) return;
+            if (RepeatTimers.ContainsKey(id)) return;
+            RepeatTimers.Add(id, timeInSeconds);
+        }
+
+        public static void RemoveTimer(string id)
+        {
+            if(TryFindTimer(id, out var timer))
+            {
+                timerRemovalQueue.Add(timer);
+                if(RepeatTimers.ContainsKey(id))
+                {
+                    RepeatTimers.Remove(id);
+                }
+            }
+        }
+
+        public static void ChangeTimer(string id, float timeInSeconds = 0.0f, Action action = null)
+        {
+            if(TryFindTimer(id, out var timer))
+            {
+                float time = timeInSeconds == 0.0f ? timer.Item2 : timeInSeconds;
+                Action a = action ?? timer.Item3;
+
+                var newTimer = Tuple.Create(id, time, a);
+                timerChangeQueue.Add(timer, newTimer);
+            }
+        }
+
+        private static bool TryFindTimer(string id, out Tuple<string, float, Action> timer)
+        {
+            timer = null;
+
+            var fTimer = timers.FirstOrDefault(t => t.Item1 == id);
+            if (fTimer == null) return false;
+
+            timer = fTimer;
+            return true;
         }
     }
 }

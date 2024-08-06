@@ -15,6 +15,7 @@ namespace HollowZero.Patches
     public class CommandDisabler
     {
         internal readonly static string[] badCommands = { "probe", "login", "reboot" };
+        internal readonly static List<string> corruptedCommands = new List<string>();
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(Terminal),nameof(Terminal.executeLine))]
@@ -25,6 +26,15 @@ namespace HollowZero.Patches
 
             if (badCommands.Contains(command)) {
                 os.terminal.writeLine($"The command '{command}' is disabled by your local administrator.");
+                __instance.currentLine = "";
+                TextBox.cursorPosition = 0;
+                TextBox.textDrawOffsetPosition = 0;
+                return false;
+            }
+
+            if(corruptedCommands.Contains(command))
+            {
+                os.terminal.writeLine($"The command '{command}' cannot be ran at this time due to system instability.");
                 __instance.currentLine = "";
                 TextBox.cursorPosition = 0;
                 TextBox.textDrawOffsetPosition = 0;

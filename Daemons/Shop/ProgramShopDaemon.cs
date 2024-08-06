@@ -401,11 +401,12 @@ namespace HollowZero.Daemons.Shop
             return ProgramsForSale.Keys.FirstOrDefault(ByName(name));
         }
 
-        private List<HollowProgram> GetBundleByName(string name)
+        internal override void OnDisconnect()
         {
-            var bundle = ProgramBundles.FirstOrDefault(t => t.Item1 == name);
-            if (bundle == default) return null;
-            return bundle.Item3;
+            foreach(var id in ButtonIDs)
+            {
+                PFButton.ReturnID(id);
+            }
         }
 
         private List<HollowProgram> GetUserPrograms()

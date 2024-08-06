@@ -39,6 +39,7 @@ using HarmonyLib;
 
 using Mono.Cecil;
 using HollowZero.Daemons.Shop;
+using HollowZero.Nodes;
 
 namespace HollowZero
 {
@@ -56,10 +57,12 @@ namespace HollowZero
         public const string DEFAULT_PACKS_FOLDER = DEFAULT_CONFIG_PATH + "/Packs/";
 
         private static List<Malware> possibleMalware = new List<Malware>();
+        private static List<Modification> possibleMods = new List<Modification>();
+        private static List<Corruption> possibleCorruptions = new List<Corruption>();
 
         internal static List<Malware> CollectedMalware { get; set; }
         internal static List<Modification> CollectedMods { get; set; }
-        internal static List<Corruption> CollectedCorruption { get; set; }
+        internal static List<Corruption> CollectedCorruptions { get; set; }
 
         private static List<string> seenEvents = new List<string>();
         public static List<string> SeenEvents
@@ -80,6 +83,18 @@ namespace HollowZero
             internal set { possibleMalware = value; }
         }
 
+        public static List<Modification> PossibleModifications
+        {
+            get { return possibleMods; }
+            internal set { possibleMods = value; }
+        }
+
+        public static List<Corruption> PossibleCorruptions
+        {
+            get { return possibleCorruptions; }
+            internal set { possibleCorruptions = value; }
+        }
+
         public static int InfectionLevel { get; internal set; }
         public static uint PlayerCredits { get; internal set; }
 
@@ -96,7 +111,7 @@ namespace HollowZero
         {
             CollectedMalware = new List<Malware>();
             CollectedMods = new List<Modification>();
-            CollectedCorruption = new List<Corruption>();
+            CollectedCorruptions = new List<Corruption>();
 
             InfectionLevel = 0;
             PlayerCredits = 0;
@@ -133,6 +148,9 @@ namespace HollowZero
             CommandManager.RegisterCommand("infection", QuickStatCommands.ShowInfection);
             CommandManager.RegisterCommand("malware", QuickStatCommands.ListMalware);
             CommandManager.RegisterCommand("stats", QuickStatCommands.ListQuickStats);
+
+            // Node Commands
+            CommandManager.RegisterCommand("listnodes", NodeCommands.ListAvailableNodes);
 
             // Guidebook
             CommandManager.RegisterCommand("guidebook", GuidebookCommands.ActivateGuidebook);
@@ -199,6 +217,8 @@ namespace HollowZero
             GuidebookPatch.GuidebookEntryTitles = GuidebookTitles;
 
             PossibleMalware.AddRange(DefaultMalware.MalwareCollection);
+            PossibleCorruptions.AddRange(DefaultCorruptions.Corruptions);
+            PossibleModifications.AddRange(DefaultModifications.Mods);
         }
 
         private static bool ReadExtensionConfigIfAny(out HollowConfig config)
@@ -302,18 +322,47 @@ namespace HollowZero
                 return false;
             }
 
-            var onRegisterMethod = registerClass.GetMethod("OnRegister");
-            if(onRegisterMethod == null)
-            {
-                FailLog(asmName, RegisterFailures.MISSING_ONREGISTER);
-                return false;
-            }
-
             var packInstance = Activator.CreateInstance(registerClass);
 
-            onRegisterMethod.Invoke(packInstance, null);
             packID = metadataClass.ConstructorArguments[0].Value as string;
             packAuthor = metadataClass.ConstructorArguments[1].Value as string;
+
+            var customMalware = registerClass.GetProperty("CustomMalware");
+            if(customMalware != null && customMalware?.GetValue(packInstance) != null)
+            {
+                if(customMalware.GetValue(packInstance) is List<Malware> cMalwareList)
+                {
+                    foreach(var malware in cMalwareList)
+                    {
+                        PossibleMalware.Add(malware);
+                    }
+                }
+            }
+
+            var customMods = registerClass.GetProperty("CustomModifications");
+            if(customMods != null && customMods?.GetValue(packInstance) != null)
+            {
+                if(customMods.GetValue(packInstance) is List<Modification> cModsList)
+                {
+                    foreach(var mod in cModsList)
+                    {
+                        PossibleModifications.Add(mod);
+                    }
+                }
+            }
+
+            var customCorruptions = registerClass.GetProperty("CustomCorruptions");
+            if(customCorruptions != null && customCorruptions?.GetValue(packInstance) != null)
+            {
+                if(customCorruptions.GetValue(packInstance) is List<Corruption> cors)
+                {
+                    foreach(var corruption in cors)
+                    {
+                        PossibleCorruptions.Add(corruption);
+                    }
+                }
+            }
+
             return true;
 
             void FailLog(string title, RegisterFailures failureType)
@@ -325,13 +374,11 @@ namespace HollowZero
                     case RegisterFailures.NOT_HOLLOW:
                         reason = "There are no classes within the DLL that inherit from HollowPack";
                         break;
-                    case RegisterFailures.MISSING_ONREGISTER:
-                        reason = "The HollowPack class is missing the OnRegister method";
-                        break;
                     case RegisterFailures.BROKEN_METADATA:
                         reason = "The HollowPack class' HollowPackMetadata is broken";
                         break;
                     default:
+                        reason = "Unknown Error";
                         break;
                 }
 
@@ -453,7 +500,6 @@ namespace HollowZero
             CollectedMalware.Add(malware);
             if(malware.SetTimer)
             {
-                //MalwareEffects.MalwareTimers.Add(malware, malware.PowerLevel);
                 MalwareEffects.AddMalwareTimer(malware, malware.PowerLevel);
             }
 
@@ -490,6 +536,19 @@ namespace HollowZero
         }
 
         public static void AddCorruption(Corruption corruption = null)
+        {
+            if (CollectedCorruptions.Contains(corruption)) return;
+
+            Corruption GetCorruption()
+            {
+                var cor = DefaultCorruptions.Corruptions.GetRandom();
+
+            }
+
+            CollectedCorruptions.Add(corruption);
+        }
+
+        public static void UpgradeCorruption(Corruption corruption)
         {
 
         }
@@ -585,7 +644,7 @@ namespace HollowZero
         {
             EnterNode, ExitNode, GainAdminAccess,
             OnForkbomb, OnOverload, OnInfectionGain,
-            OnTraceTrigger
+            OnTraceTrigger, None, Always
         }
 
         public string DisplayName { get; set; }
@@ -604,6 +663,8 @@ namespace HollowZero
         public bool IsBlocker = false;
         public const bool IsCorruption = false;
 
+        public int MinimumLayer = 0;
+
         public bool AddEffectToComp(Computer comp)
         {
             if (affectedCompIDs.Contains(comp.idName)) return false;
@@ -617,7 +678,7 @@ namespace HollowZero
             affectedCompIDs.Clear();
         }
 
-        public void Discard()
+        public virtual void Discard()
         {
             if(HollowZeroCore.CollectedMods.Contains(this))
             {
@@ -637,6 +698,27 @@ namespace HollowZero
         public Corruption(string name) : base(name) { }
 
         public new const bool IsCorruption = true;
+
+        public int StepsLeft = 5;
+        public List<string> visitedNodeIDs = new List<string>();
+
+        public Action CorruptionEffect { get; set; }
+
+        public override void Discard()
+        {
+            if(HollowZeroCore.CollectedCorruptions.Contains(this))
+            {
+                HollowZeroCore.CollectedCorruptions.Remove(this);
+            }
+        }
+
+        public void TakeStep()
+        {
+            if(StepsLeft-- <= 0)
+            {
+                Discard();
+            }
+        }
     }
 
     public static class HollowGlobalManager
@@ -665,6 +747,23 @@ namespace HollowZero
         public static void AddChoiceEvent(IEnumerable<ChoiceEvent> evs)
         {
             ChoiceEventDaemon.PossibleEvents.AddRange(evs);
+        }
+
+        public static void AddMalware(Malware malware)
+        {
+            if (HollowZeroCore.CollectedMalware.Contains(malware)) return;
+            HollowZeroCore.AddMalware(malware);
+        }
+
+        public static void AddCorruption(Corruption corruption)
+        {
+            if (HollowZeroCore.CollectedCorruptions.Contains(corruption)) return;
+            HollowZeroCore.AddCorruption(corruption);
+        }
+
+        public static void ForkbombComputer(Computer target)
+        {
+            Multiplayer.parseInputMessage($"eForkBomb {target.ip}", OS.currentInstance);
         }
     }
 

@@ -37,7 +37,7 @@ namespace HollowZero.Commands
 
             message.Append($"CURRENT INFECTION: {HollowZeroCore.InfectionLevel}%\n");
             message.Append($"MODIFICATION COUNT: {HollowZeroCore.CollectedMods.Count}\n");
-            message.Append($"CORRUPTION COUNT: {HollowZeroCore.CollectedCorruption.Count}\n");
+            message.Append($"CORRUPTION COUNT: {HollowZeroCore.CollectedCorruptions.Count}\n");
             message.Append($"CREDITS: ${HollowZeroCore.PlayerCredits}\n");
 
             message.Append(TERM_SEPERATOR);

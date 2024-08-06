@@ -13,18 +13,6 @@ namespace HollowZero
     {
         private static readonly List<Modification> modifications = new List<Modification>()
         {
-            /*new Modification("QuikStrike Mk.I")
-            {
-                Description = "On any node with a proxy, immediately calls upon (1) shell to overload when connecting.",
-                PowerLevels = new List<int>() { 1 },
-                Upgraded = false,
-                UpgradedModification = new Modification("QuikStrike Mk.I-rev.1")
-                {
-                    Description = "On any node with a proxy, immediately calls upon (1) shell to overload when connecting at 1.1x speed.",
-                    PowerLevels = new List<int>() { 1 },
-                    Upgraded = true,
-                }
-            },*/
             new WaterfallModifier(),
             new CloudbleedModifier(),
             new CloverModifier(),
@@ -32,12 +20,50 @@ namespace HollowZero
             new ElModifier(),
             new CSECModifier(),
             new CoelModifier(),
-            new MaskrModifier()
+            new MaskrModifier(),
+            new QuikStrikeModifier()
         };
 
         public static ReadOnlyCollection<Modification> Mods {
             get {
                 return new ReadOnlyCollection<Modification>(modifications);
+            }
+        }
+
+        private class QuikStrikeModifier : Modification
+        {
+            public QuikStrikeModifier() : base("QuikStrike Mk.I")
+            {
+                PowerLevels = new List<int>() { 1 };
+                Trigger = ModTriggers.EnterNode;
+                Effect = delegate (Computer comp)
+                {
+                    if (!OS.currentInstance.shells.Any() || !comp.hasProxy) return;
+                    if (!AddEffectToComp(comp)) return;
+
+                    for(var i = 0; i < PowerLevels[0]; i++)
+                    {
+                        if (OS.currentInstance.shells.Count < i + 1) return;
+                        OS.currentInstance.shells[i].StartOverload();
+                    }
+                };
+            }
+
+            public override string Description
+            {
+                get
+                {
+                    return $"When connecting to a node with a proxy, immediately start an overload with {PowerLevels[0]} shell(s).";
+                }
+            }
+
+            public override void Upgrade()
+            {
+                if (Upgraded) return;
+                base.Upgrade();
+
+                DisplayName = "QuikStrike Mk.II";
+                PowerLevels = new List<int>() { 2 };
             }
         }
 

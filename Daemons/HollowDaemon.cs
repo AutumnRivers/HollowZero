@@ -90,6 +90,11 @@ namespace HollowZero.Daemons
                 malware.PowerAction.Invoke(malware.PowerLevel);
             }
         }
+
+        internal virtual void OnDisconnect()
+        {
+            return;
+        }
     }
 
     public class HollowButton

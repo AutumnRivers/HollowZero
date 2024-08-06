@@ -52,7 +52,7 @@ namespace HollowZero.Patches
                 "-= Corruptions =-\n" +
                 "Corruptions are persistent EXTREMELY negative (but temporary) effects that will no doubt hinder your progress. " +
                 "They might force you into terminal mode, randomly temporarily disable commands, and much more.\n" +
-                "Corruptions are gained through Events and Malware.",
+                "Corruptions are gained through Events, Malware, and some Shops.",
                 ShortTitle = "Basics - Mods"
             },
             new GuidebookEntry()
@@ -134,7 +134,9 @@ namespace HollowZero.Patches
             new GuidebookEntry()
             {
                 Title = "Gacha Shops",
-                Content = "Gacha Shops will give you a random Modification in return for credits. Additionally, " +
+                Content = "Gacha Shops will give you a random Modification in return for credits. However, " +
+                "if you're unlucky, then you might just end up getting a Corruption instead. " +
+                "Additionally, " +
                 "you can use these shops to upgrade a random Modification you already have. It could upgrade " +
                 "a Modification you want it to, or one you couldn't care less for.\n\n" +
                 "\"Let's go gambling! Aw, dangit! Aw, dangit! Aw, dan--\"",
@@ -143,7 +145,7 @@ namespace HollowZero.Patches
             new GuidebookEntry()
             {
                 Title = "Rest Stops",
-                Content = "Decreases your Infection Level by a bit.",
+                Content = "Decreases your Infection Level by a bit once, no catch.",
                 ShortTitle = "Misc. - Rest Stops"
             },
             new GuidebookEntry()
