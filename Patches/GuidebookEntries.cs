@@ -73,14 +73,6 @@ namespace HollowZero.Patches
             },
             new GuidebookEntry()
             {
-                Title = "Chance Events",
-                Content = "Events where the player is prompted to take a random chance. " +
-                "Similar to Choice Events, but completely centered around taking chances.\n\n" +
-                "Roll the dice. What's the worst that could happen?",
-                ShortTitle = "Events - Chance"
-            },
-            new GuidebookEntry()
-            {
                 Title = "Unavoidable Events",
                 Content = "Events that, once shown, the player *MUST* interact with to continue.\n\n" +
                 "Most events can be ignored or have an option to leave them, allowing the player to continue " +
@@ -174,8 +166,6 @@ namespace HollowZero.Patches
                 "Encrypts a random file on your system every 60 seconds. Files are decrypted after 90 seconds. " +
                 "If you're in a rush, you can also run \"payrs\", which will make you lose 100 credits, " +
                 "but it immediately decrypts all your files.\n\n" +
-                "-= Botnet =-\n" +
-                "Randomly get attacked by outside nodes.\n\n" +
                 "-= Adware =-\n" +
                 "Random chance to lose 25 credits every time you trigger an event.\n\n" +
                 "-= Spyware =-\n" +

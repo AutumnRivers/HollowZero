@@ -99,7 +99,6 @@
     <Compile Include="Extensions\FolderExtensions.cs" />
     <Compile Include="Extensions\ListExtensions.cs" />
     <Compile Include="Extensions\ReflectionHelpers.cs" />
-    <Compile Include="Fixes\DaemonContentFix.cs" />
     <Compile Include="HollowPack.cs" />
     <Compile Include="HollowZeroCore.cs" />
     <Compile Include="Nodes\NodeGenerator.cs" />

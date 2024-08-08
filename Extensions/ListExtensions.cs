@@ -16,6 +16,19 @@ namespace HollowZero
             return e[index];
         }
 
+        public static bool TryFind<T>(this List<T> e, Func<T, bool> predicate, out T item)
+        {
+            if(e.Any(predicate))
+            {
+                item = e.FirstOrDefault(predicate);
+                return true;
+            } else
+            {
+                item = default;
+                return false;
+            }
+        }
+
         public static T GetRandom<T>(this IEnumerable<T> e)
         {
             if (!e.Any()) return default;

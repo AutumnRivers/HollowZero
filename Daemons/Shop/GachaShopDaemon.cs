@@ -17,7 +17,7 @@ namespace HollowZero.Daemons.Shop
         public override string Identifier => "Gacha Shop";
 
         public const int DEFAULT_MOD_CHANCES = 3;
-        public const int DEFAULT_UPGRADE_CHANCES = 2;
+        public const int DEFAULT_UPGRADE_CHANCES = 1;
 
         public int RemainingModifications = DEFAULT_MOD_CHANCES;
         public int RemainingUpgrades = DEFAULT_UPGRADE_CHANCES;
@@ -48,6 +48,12 @@ namespace HollowZero.Daemons.Shop
             GetButtonIDs();
         }
 
+        public override void navigatedTo()
+        {
+            GetButtonIDs();
+            base.navigatedTo();
+        }
+
         public override void draw(Rectangle bounds, SpriteBatch sb)
         {
             base.draw(bounds, sb);
@@ -73,24 +79,73 @@ namespace HollowZero.Daemons.Shop
                     switch(GetModification(out var mod, out var cor))
                     {
                         case true:
-                            HollowZeroCore.CollectedMods.Add(mod);
+                            HollowZeroCore.AddModification(mod);
+                            OS.currentInstance.terminal.writeLine("< :) > GREAT LUCK! " +
+                                $"You got the Modifcation: {mod.DisplayName}");
+                            if(OS.DEBUG_COMMANDS)
+                            {
+                                OS.currentInstance.terminal.writeLine("MOD DEBUG: " +
+                                    $"{mod.ID} | U:{mod.Upgraded} | {mod.Description}");
+                            }
+                            Chance -= 15;
                             break;
                         case false:
-                            HollowZeroCore.CollectedCorruptions.Add(cor);
+                            HollowZeroCore.AddCorruption(cor);
+                            OS.currentInstance.terminal.writeLine("< :( > BAD LUCK! " +
+                                $"You got the Corruption: {cor.DisplayName}");
+                            if (OS.DEBUG_COMMANDS)
+                            {
+                                OS.currentInstance.terminal.writeLine("CORRUPTION DEBUG: " +
+                                    $"{cor.ID} | U:{cor.Upgraded} | Steps:{cor.StepsLeft} | {cor.Description}");
+                            }
                             break;
                     }
+                    RemainingModifications--;
                 };
+            } else
+            {
+                modButton.Text = "(OUT OF MODIFICATIONS)";
+                modButton.Disabled = true;
+                modButton.DisabledMessage = "<...> Out of modifications!";
             }
+            modButton.DoButton();
+
+            var upgradeButton = new HollowButton(UpgradeButtonID, bounds.Center.X - (bounds.Width / 4),
+                bounds.Center.Y + (BUTTON_HEIGHT / 2) + 25, bounds.Width / 2, BUTTON_HEIGHT,
+                "Get Mod. Upgrade", Color.White);
+            if(RemainingUpgrades > 0)
+            {
+                if(HollowZeroCore.CollectedMods.Count(m => !m.Upgraded) <= 0)
+                {
+                    upgradeButton.Disabled = true;
+                    upgradeButton.DisabledMessage = "<...> There's no more mods for you to upgrade!";
+                }
+
+                upgradeButton.Text = $"Upgrade Random Modification!\n(Remaining Chances: {RemainingUpgrades})";
+                upgradeButton.Color = OS.currentInstance.unlockedColor;
+                upgradeButton.OnPressed = delegate ()
+                {
+                    UpgradeModification();
+                    RemainingUpgrades--;
+                };
+            } else
+            {
+                upgradeButton.Text = "(OUT OF UPGRADES)";
+                upgradeButton.Disabled = true;
+                upgradeButton.DisabledMessage = "<...> Out of upgrades!";
+            }
+            upgradeButton.DoButton();
         }
 
         private const int CHANCE = 80;
+        private int Chance = CHANCE;
 
         private bool GetModification(out Modification mod, out Corruption corruption)
         {
             mod = null;
             corruption = null;
 
-            if(GetChanceResult(CHANCE))
+            if(GetChanceResult(Chance))
             {
                 mod = GetMod();
                 return true;
@@ -103,15 +158,35 @@ namespace HollowZero.Daemons.Shop
             Modification GetMod()
             {
                 var mod = DefaultModifications.Mods.GetRandom();
-                if (HollowZeroCore.CollectedMods.Contains(mod)) return GetMod();
+                if (HollowZeroCore.CollectedMods.Any(m => m.ID == mod.ID)) return GetMod();
                 return mod;
             }
 
             Corruption GetCorruption()
             {
                 var c = DefaultCorruptions.Corruptions.GetRandom();
-                if (HollowZeroCore.CollectedCorruptions.Contains(c)) return GetCorruption();
+                if (HollowZeroCore.CollectedCorruptions.Any(cor => cor.ID == c.ID)) return GetCorruption();
                 return c;
+            }
+        }
+
+        private void UpgradeModification()
+        {
+            if(GetChanceResult(CHANCE))
+            {
+                var m = HollowZeroCore.CollectedMods.Where(mod => !mod.Upgraded).GetRandom();
+                if(OS.DEBUG_COMMANDS) {
+                    OS.currentInstance.terminal.writeLine($"Upgrading {m.DisplayName} | {m.Description}");
+                }
+                HollowZeroCore.UpgradeModification(m);
+                if (OS.DEBUG_COMMANDS)
+                {
+                    OS.currentInstance.terminal.writeLine($"Upgraded {m.DisplayName} | {m.Description}");
+                }
+            } else if(HollowZeroCore.CollectedCorruptions.Any(c => !c.Upgraded))
+            {
+                var c = HollowZeroCore.CollectedCorruptions.Where(c => !c.Upgraded).GetRandom();
+                HollowZeroCore.UpgradeCorruption(c);
             }
         }
 

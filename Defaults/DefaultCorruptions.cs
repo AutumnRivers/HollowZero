@@ -31,7 +31,7 @@ namespace HollowZero
 
         private class TerminalCorruption : Corruption
         {
-            public TerminalCorruption() : base("Display Module Corruption")
+            public TerminalCorruption() : base("Display Module Corruption", "displaycorr")
             {
                 Trigger = ModTriggers.Always;
                 Effect = delegate (Computer comp)
@@ -65,7 +65,7 @@ namespace HollowZero
             private const string TIMER_ID = "commandcorrupter";
             private const int TIMER_SECONDS = 30;
 
-            public CommandCorruption() : base("Command Runner Corruption")
+            public CommandCorruption() : base("Command Runner Corruption", "cmdcorr")
             {
                 Trigger = ModTriggers.None;
                 PowerLevels = new List<int>() { 1 };
@@ -121,7 +121,7 @@ namespace HollowZero
         {
             public const int DEFAULT_STEPS_LEFT = 10;
 
-            public PortHackCorruption() : base("Core Services Corruption")
+            public PortHackCorruption() : base("Core Services Corruption", "phcorr")
             {
                 Trigger = ModTriggers.None;
                 PowerLevels = new List<int>() { 50 };
@@ -164,7 +164,7 @@ namespace HollowZero
 
             public const string TIMER_ID = "shellcorrupter";
 
-            public ShellCorruption() : base("Shell Services Corruption")
+            public ShellCorruption() : base("Shell Services Corruption", "shellcorr")
             {
                 Trigger = ModTriggers.None;
                 CorruptionEffect = delegate ()
@@ -208,7 +208,7 @@ namespace HollowZero
         {
             public const int DEFAULT_STEPS = 10;
 
-            public NetworkCorruption() : base("Networking Services Corruption")
+            public NetworkCorruption() : base("Networking Services Corruption", "netwcorr")
             {
                 Trigger = ModTriggers.EnterNode;
                 PowerLevels = new List<int>() { 15 };
@@ -243,7 +243,7 @@ namespace HollowZero
             public const string TIMER_ID = "forkbombcorruption";
             public const int DEFAULT_STEPS = 3; // Considering crashes are an instant run-ender, this can have a low value.
 
-            public ForkbombCorruption() : base("Hardware Malfunction")
+            public ForkbombCorruption() : base("Hardware Malfunction", "forkcorr")
             {
                 Trigger = ModTriggers.None;
                 Description = "Causes your PC to be forkbombed at random intervals.";

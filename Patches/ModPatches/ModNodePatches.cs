@@ -35,6 +35,7 @@ namespace HollowZero
                         OS.currentInstance.delayer.Post(ActionDelayer.NextTick(), delegate
                         {
                             OS.currentInstance.display.command = "connectiondenied";
+                            OS.currentInstance.terminal.writeLine("<!!!> Connection failed due to a network malfunction.");
                         });
                         __result = false;
                         return false;

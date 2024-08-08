@@ -1,0 +1,63 @@
+# Hollow Zero Feature Checklist
+---
+
+(NP) - Needs (Harmony) Patch
+(CH) - Needs Change
+(T) - Untested
+
+- [ ] Basics
+    - [X] Credits System
+    - [X] Infection System
+    - [ ] InfecTracker (CH/NP) - WORKS, but I want to change it from an exe to a patch
+    - [X] Guidebook
+    - [ ] HollowCore / Inventory (NP)
+- [ ] Malware
+    - [X] Cryptominer
+    - [ ] Ransomware (NP) - Also needs `payrs` command
+    - [ ] Adware - `EveryAction` trigger unimplemented
+    - [ ] Spyware (T)
+    - [ ] Dropper (T)
+    - [ ] Packet Storm (T)
+    - [ ] FireScramble - Might need new `NodeGenerated` trigger...?
+- [ ] Modifications (T)
+    - [ ] QuikStrike
+    - [ ] Waterfall
+    - [ ] Cloudbleed (NP)
+    - [ ] Cl0v3r's Gambit
+    - [ ] Vaccine Shot (NP)
+    - [ ] /el's Praise
+    - [ ] CSEC's Gift (NP)
+    - [ ] Coel's Aid (NP)
+    - [ ] maskr
+- [ ] Corruptions
+    - [ ] Display Cor. (T)
+    - [ ] CMD Cor. (T)
+    - [ ] PortHack Cor. (T)
+    - [ ] Shell Cor. (T)
+    - [X] Network Cor.
+    - [ ] Forkbomb Cor. (T)
+- [ ] Events
+    - [X] Dialogue Events
+    - [X] Choice Events - also replaces Chance Events with unavoidable toggle
+    - [X] Rest Stops
+    - [ ] Story Events
+    - [ ] Multi-Page Events
+- [ ] Shops
+    - [X] Program Shops
+    - [X] Gacha Shops
+    - [ ] Antivirus Shop
+    - [ ] Chance Shop / Trinity
+- [ ] Layer System
+    - [ ] Base Layers
+    - [ ] Timed Layers - Typically reserved for transitions (e.g., 29 -> 30)
+    - [ ] Unstable Layers - Raises infection the longer the player stays in one
+    - [ ] Transition Nodes
+    - [ ] Node Generation
+        - [X] Basic Node Generation
+        - [ ] Event Node Generation (might work, untested)
+    - [ ] Winnable Layer Generation
+        - [ ] Program Balancing
+        - [ ] Proxy/Firewall Balancing
+- [ ] Story Mode
+    - [ ] Story Events
+    - [ ] Pre-Defined Layers

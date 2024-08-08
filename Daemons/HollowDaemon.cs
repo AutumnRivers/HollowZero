@@ -85,7 +85,7 @@ namespace HollowZero.Daemons
 
         public static void DoMalwarePowerAction()
         {
-            foreach (var malware in HollowZeroCore.CollectedMalware.Where(m => m.Trigger == Malware.MalwareTrigger.EVERY_ACTION))
+            foreach (var malware in HollowZeroCore.CollectedMalware.Where(m => m.Trigger == Malware.MalwareTrigger.EveryAction))
             {
                 malware.PowerAction.Invoke(malware.PowerLevel);
             }

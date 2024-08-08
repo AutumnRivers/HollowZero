@@ -142,6 +142,7 @@ namespace HollowZero
             DaemonManager.RegisterDaemon<ChanceEventDaemon>();
             DaemonManager.RegisterDaemon<RestStopDaemon>();
             DaemonManager.RegisterDaemon<ProgramShopDaemon>();
+            DaemonManager.RegisterDaemon<GachaShopDaemon>();
 
             HZLog("Adding commands...");
             // Quick Stats
@@ -527,30 +528,59 @@ namespace HollowZero
 
         public static void AddModification(Modification mod = null)
         {
+            if (CollectedMods.Any(m => m.ID == mod?.ID)) return;
 
+            Modification GetModification()
+            {
+                var modf = PossibleModifications.GetRandom();
+                if (CollectedMods.Any(m => m.ID == modf.ID)) return GetModification();
+                return modf;
+            }
+
+            var modification = mod ??= GetModification();
+
+            CollectedMods.Add(modification);
         }
 
         public static void UpgradeModification(Modification mod = null)
         {
+            if (mod == null && !CollectedMods.Any(m => !m.Upgraded)) return;
+            var modf = mod ??= CollectedMods.Where(m => !m.Upgraded).GetRandom();
 
+            if(CollectedMods.TryFind(m => m.ID == modf.ID, out var modification))
+            {
+                int index = CollectedMods.IndexOf(modification);
+                CollectedMods[index].Upgrade();
+            } else
+            {
+                modf.Upgrade();
+                CollectedMods.Add(modf);
+            }
         }
 
         public static void AddCorruption(Corruption corruption = null)
         {
-            if (CollectedCorruptions.Contains(corruption)) return;
+            if (CollectedCorruptions.Any(c => c.ID == corruption?.ID)) return;
 
             Corruption GetCorruption()
             {
                 var cor = DefaultCorruptions.Corruptions.GetRandom();
-
+                if (CollectedCorruptions.Any(c => c.ID == cor.ID)) return GetCorruption();
+                return cor;
             }
 
-            CollectedCorruptions.Add(corruption);
+            var corr = corruption ??= GetCorruption();
+
+            CollectedCorruptions.Add(corr);
         }
 
         public static void UpgradeCorruption(Corruption corruption)
         {
-
+            if(CollectedCorruptions.TryFind(c => c.ID == corruption.ID, out var corr))
+            {
+                int index = CollectedCorruptions.IndexOf(corr);
+                CollectedCorruptions[index].Upgrade();
+            }
         }
 
         public static Malware GetRandomMalware()
@@ -611,13 +641,11 @@ namespace HollowZero
     {
         public enum MalwareTrigger
         {
-            ENTER_NODE,
-            EXIT_NODE,
-            ENTER_NETWORK,
-            EXIT_NETWORK,
-            EVERY_ACTION,
-            PERSISTENT,
-            ONE_SHOT
+            EnterNode,
+            ExitNode,
+            EveryAction,
+            Persistent,
+            OneShot
         }
 
         public string DisplayName { get; set; }
@@ -635,9 +663,10 @@ namespace HollowZero
 
     public class Modification
     {
-        public Modification(string name)
+        public Modification(string name, string id)
         {
             DisplayName = name;
+            ID = id;
         }
 
         public enum ModTriggers
@@ -647,6 +676,7 @@ namespace HollowZero
             OnTraceTrigger, None, Always
         }
 
+        public string ID { get; set; }
         public string DisplayName { get; set; }
         public virtual string Description { get; set; }
         public List<int> PowerLevels { get; set; }
@@ -695,7 +725,7 @@ namespace HollowZero
 
     public class Corruption : Modification
     {
-        public Corruption(string name) : base(name) { }
+        public Corruption(string name, string id) : base(name, id) { }
 
         public new const bool IsCorruption = true;
 

@@ -32,7 +32,7 @@ namespace HollowZero
 
         private class QuikStrikeModifier : Modification
         {
-            public QuikStrikeModifier() : base("QuikStrike Mk.I")
+            public QuikStrikeModifier() : base("QuikStrike Mk.I", "quikstrike")
             {
                 PowerLevels = new List<int>() { 1 };
                 Trigger = ModTriggers.EnterNode;
@@ -69,7 +69,7 @@ namespace HollowZero
 
         private class WaterfallModifier : Modification
         {
-            public WaterfallModifier() : base("Waterfall")
+            public WaterfallModifier() : base("Waterfall", "waterfall")
             {
                 PowerLevels = new List<int>() { 1 };
                 Trigger = ModTriggers.EnterNode;
@@ -99,7 +99,7 @@ namespace HollowZero
 
         private class CloudbleedModifier : Modification
         {
-            public CloudbleedModifier() : base("Cloudbleed")
+            public CloudbleedModifier() : base("Cloudbleed", "cloudbleed")
             {
                 PowerLevels = new List<int>() { 10 };
                 Trigger = ModTriggers.OnForkbomb;
@@ -129,7 +129,7 @@ namespace HollowZero
 
         private class CloverModifier : Modification
         {
-            public CloverModifier() : base("Cl0v3r's Gambit")
+            public CloverModifier() : base("Cl0v3r's Gambit", "clover")
             {
                 Description = "Clear all logs when leaving a node.";
                 Trigger = ModTriggers.ExitNode;
@@ -159,7 +159,7 @@ namespace HollowZero
 
         private class VaccineModifier : Modification
         {
-            public VaccineModifier() : base("Vaccine Shot")
+            public VaccineModifier() : base("Vaccine Shot", "vaccine")
             {
                 PowerLevels = new List<int>() { 10 };
                 Trigger = ModTriggers.OnInfectionGain;
@@ -194,7 +194,7 @@ namespace HollowZero
 
         private class ElModifier : Modification
         {
-            public ElModifier() : base("/el's Praise")
+            public ElModifier() : base("/el's Praise", "elcrack")
             {
                 PowerLevels = new List<int>() { 50 };
                 Trigger = ModTriggers.EnterNode;
@@ -241,7 +241,7 @@ namespace HollowZero
 
         private class CSECModifier : Modification
         {
-            public CSECModifier() : base("CSEC's Gift")
+            public CSECModifier() : base("CSEC's Gift", "csecgift")
             {
                 Trigger = ModTriggers.OnOverload;
                 Description = "Protects you from gaining Malware (1) time before discarding itself. " +
@@ -275,7 +275,7 @@ namespace HollowZero
 
         private class CoelModifier : Modification
         {
-            public CoelModifier() : base("Coel's Aid")
+            public CoelModifier() : base("Coel's Aid", "coelaid")
             {
                 Trigger = ModTriggers.GainAdminAccess;
                 Effect = delegate (Computer comp)
@@ -313,7 +313,7 @@ namespace HollowZero
 
         private class MaskrModifier : Modification
         {
-            public MaskrModifier() : base("maskr_1.0")
+            public MaskrModifier() : base("maskr_1.0", "maskr")
             {
                 PowerLevels = new List<int>() { 10 };
                 Trigger = ModTriggers.OnTraceTrigger;
