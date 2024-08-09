@@ -74,7 +74,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Actions\InfecTrackerActions.cs" />
     <Compile Include="Commands\DebugCommands.cs" />
     <Compile Include="Commands\Guidebook.cs" />
     <Compile Include="Commands\NodeCommands.cs" />
@@ -94,7 +93,6 @@
     <Compile Include="Defaults\DefaultMalware.cs" />
     <Compile Include="Defaults\DefaultModifications.cs" />
     <Compile Include="Executables\Cryptominer.cs" />
-    <Compile Include="Executables\InfecTracker.cs" />
     <Compile Include="Extensions\ColorExtensions.cs" />
     <Compile Include="Extensions\FolderExtensions.cs" />
     <Compile Include="Extensions\ListExtensions.cs" />
@@ -107,6 +105,7 @@
     <Compile Include="Patches\CustomEffects.cs" />
     <Compile Include="Patches\GuidebookEntries.cs" />
     <Compile Include="Patches\GuidebookPatch.cs" />
+    <Compile Include="Patches\InfecTrackerPatch.cs" />
     <Compile Include="Patches\InformAboutPacks.cs" />
     <Compile Include="Patches\ListLoadedPacks.cs" />
     <Compile Include="Patches\ModPatches\ModNodePatches.cs" />
@@ -115,6 +114,8 @@
     <Compile Include="Patches\RefillShopsOnDisconnect.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Actions\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

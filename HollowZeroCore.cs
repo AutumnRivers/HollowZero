@@ -44,6 +44,7 @@ using HollowZero.Nodes;
 namespace HollowZero
 {
     [BepInDependency("autumnrivers.stuxnet")]
+    [BepInDependency("somemod.name", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInPlugin(ModGUID, ModName, ModVer)]
     public class HollowZeroCore : HacknetPlugin
     {
@@ -55,6 +56,8 @@ namespace HollowZero
 
         public const string DEFAULT_CONFIG_PATH = "/Plugins/HZConfig";
         public const string DEFAULT_PACKS_FOLDER = DEFAULT_CONFIG_PATH + "/Packs/";
+
+        public const int MAX_MALWARE = 4;
 
         private static List<Malware> possibleMalware = new List<Malware>();
         private static List<Modification> possibleMods = new List<Modification>();
@@ -97,6 +100,7 @@ namespace HollowZero
 
         public static int InfectionLevel { get; internal set; }
         public static uint PlayerCredits { get; internal set; }
+        public static int CurrentLayer { get; internal set; }
 
         //internal static List<string> loadedPacks = new List<string>();
         internal static Dictionary<string, string> knownPacks = new Dictionary<string, string>();
@@ -133,8 +137,7 @@ namespace HollowZero
                 }
             }
 
-            HZLog("Adding actions...");
-            ActionManager.RegisterAction(typeof(LaunchInfecTrackerAction), "LaunchInfecTracker");
+            //HZLog("Adding actions...");
 
             HZLog("Adding daemons...");
             DaemonManager.RegisterDaemon<DialogueEventDaemon>();

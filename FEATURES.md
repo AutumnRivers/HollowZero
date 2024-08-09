@@ -8,7 +8,7 @@
 - [ ] Basics
     - [X] Credits System
     - [X] Infection System
-    - [ ] InfecTracker (CH/NP) - WORKS, but I want to change it from an exe to a patch
+    - [X] InfecTracker
     - [X] Guidebook
     - [ ] HollowCore / Inventory (NP)
 - [ ] Malware
