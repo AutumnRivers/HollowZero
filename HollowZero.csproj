@@ -76,6 +76,7 @@
   <ItemGroup>
     <Compile Include="Commands\DebugCommands.cs" />
     <Compile Include="Commands\Guidebook.cs" />
+    <Compile Include="Commands\Inventory.cs" />
     <Compile Include="Commands\NodeCommands.cs" />
     <Compile Include="Commands\QuickStatCommands.cs" />
     <Compile Include="Daemons\Event\ChanceEventDaemon.cs" />
@@ -104,14 +105,15 @@
     <Compile Include="Patches\CommandDisabler.cs" />
     <Compile Include="Patches\CustomEffects.cs" />
     <Compile Include="Patches\GuidebookEntries.cs" />
-    <Compile Include="Patches\GuidebookPatch.cs" />
-    <Compile Include="Patches\InfecTrackerPatch.cs" />
+    <Compile Include="Patches\UIPatches\GuidebookPatch.cs" />
+    <Compile Include="Patches\UIPatches\InfecTrackerPatch.cs" />
     <Compile Include="Patches\InformAboutPacks.cs" />
     <Compile Include="Patches\ListLoadedPacks.cs" />
     <Compile Include="Patches\ModPatches\ModNodePatches.cs" />
     <Compile Include="Patches\PersistentEffects\HollowTimer.cs" />
     <Compile Include="Patches\PersistentEffects\MalwareEffects.cs" />
     <Compile Include="Patches\RefillShopsOnDisconnect.cs" />
+    <Compile Include="Patches\UIPatches\InventoryPatch.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

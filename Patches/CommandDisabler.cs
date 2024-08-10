@@ -32,7 +32,9 @@ namespace HollowZero.Patches
                 return false;
             }
 
-            if(corruptedCommands.Contains(command))
+            if(corruptedCommands.Contains(command) ||
+                ((corruptedCommands.Contains("disconnect") || corruptedCommands.Contains("dc")) &&
+                (command == "disconnect" || command == "dc")))
             {
                 os.terminal.writeLine($"The command '{command}' cannot be ran at this time due to system instability.");
                 __instance.currentLine = "";

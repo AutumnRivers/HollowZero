@@ -6,7 +6,7 @@ namespace HollowZero.Commands
     {
         public static void ActivateGuidebook(OS os, string[] args)
         {
-            HollowZeroCore.GuidebookIsActive = true;
+            HollowZeroCore.CurrentUIState = HollowZeroCore.UIState.Guidebook;
         }
     }
 }

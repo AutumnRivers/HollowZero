@@ -1,14 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 using Hacknet;
 using Hacknet.Gui;
 
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 
 using HarmonyLib;
 
@@ -40,7 +35,12 @@ namespace HollowZero.Patches
         [HarmonyPatch(typeof(OS),nameof(OS.drawModules))]
         public static bool ShowGuidebook(OS __instance)
         {
-            if (!HollowZeroCore.GuidebookIsActive) return true;
+            if (HollowZeroCore.CurrentUIState != HollowZeroCore.UIState.Guidebook) return true;
+            if (HollowGlobalManager.TargetTheme == OSTheme.TerminalOnlyBlack)
+            {
+                HollowZeroCore.CurrentUIState = HollowZeroCore.UIState.Game;
+                return true;
+            }
 
             var screen = GuiData.spriteBatch.GraphicsDevice.Viewport;
             Rectangle guidebookBounds = new Rectangle()
@@ -65,7 +65,7 @@ namespace HollowZero.Patches
             var exitButton = Button.doButton(ExitButtonID, guidebookBounds.X + guidebookBounds.Width - 160,
                 guidebookBounds.Y + 10, 150, 35, "Close Guidebook", Color.Red);
 
-            if(exitButton) { HollowZeroCore.GuidebookIsActive = false; }
+            if(exitButton) { HollowZeroCore.CurrentUIState = HollowZeroCore.UIState.Game; }
 
             // Scrollable List
             SelectableTextList.scrollOffset = guidebookScroll;

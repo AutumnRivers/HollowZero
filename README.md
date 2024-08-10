@@ -15,6 +15,9 @@ Sure, go hog wild.
 ## Is everything randomly generated?
 If you want it to be. You can change Hollow Zero's mode in your extension config file. If set to `Story`, then you can define your own layers and end point.
 
+## Is anything saved?
+Not currently. Hollow Zero is mainly meant to be used similarly to a roguelike, and those often don't save progress, either. This might change in the future, but it's not currently on the docket.
+
 ## How can I add new events, etc.?
 There's two ways to do so:
 ### Config File

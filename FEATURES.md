@@ -5,12 +5,12 @@
 (CH) - Needs Change
 (T) - Untested
 
-- [ ] Basics
+- [X] Basics
     - [X] Credits System
     - [X] Infection System
     - [X] InfecTracker
     - [X] Guidebook
-    - [ ] HollowCore / Inventory (NP)
+    - [X] HollowCore / Inventory
 - [ ] Malware
     - [X] Cryptominer
     - [ ] Ransomware (NP) - Also needs `payrs` command
@@ -31,7 +31,7 @@
     - [ ] maskr
 - [ ] Corruptions
     - [ ] Display Cor. (T)
-    - [ ] CMD Cor. (T)
+    - [X] CMD Cor.
     - [ ] PortHack Cor. (T)
     - [ ] Shell Cor. (T)
     - [X] Network Cor.

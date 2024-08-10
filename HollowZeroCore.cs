@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.IO;
 using System.Linq;
-using System.Text;
 
 using BepInEx;
 using BepInEx.Hacknet;
@@ -12,34 +11,29 @@ using Hacknet;
 using Hacknet.Extensions;
 using Hacknet.Gui;
 
-using Pathfinder;
 using Pathfinder.Daemon;
 
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 
 using Newtonsoft.Json;
 
 using HollowZero.Daemons;
 using HollowZero.Daemons.Event;
-using HollowZero.Executables;
-using HollowZero.Actions;
+using HollowZero.Daemons.Shop;
 using HollowZero.Commands;
 using HollowZero.Packs;
 using HollowZero.Patches;
 
 using Pathfinder.Event.Loading;
 using Pathfinder.Event.Gameplay;
-using Pathfinder.Action;
 using Pathfinder.Event;
 using Pathfinder.Command;
-using Pathfinder.Executable;
 
 using HarmonyLib;
 
 using Mono.Cecil;
-using HollowZero.Daemons.Shop;
-using HollowZero.Nodes;
+using Microsoft.Xna.Framework.Graphics;
+using Hacknet.Effects;
 
 namespace HollowZero
 {
@@ -107,7 +101,12 @@ namespace HollowZero
         internal static List<Assembly> knownPackAsms = new List<Assembly>();
         internal static Dictionary<string, string> loadedPacks = new Dictionary<string, string>();
 
-        internal static bool GuidebookIsActive { get; set; }
+        internal enum UIState
+        {
+            Game, Guidebook, Inventory
+        }
+
+        internal static UIState CurrentUIState { get; set; }
         internal static bool EnableTrinity { get; set; }
         internal static string Mode { get; set; }
 
@@ -156,8 +155,9 @@ namespace HollowZero
             // Node Commands
             CommandManager.RegisterCommand("listnodes", NodeCommands.ListAvailableNodes);
 
-            // Guidebook
+            // UI Commands
             CommandManager.RegisterCommand("guidebook", GuidebookCommands.ActivateGuidebook);
+            CommandManager.RegisterCommand("inventory", InventoryCommands.ShowInventory);
 
             // Debug
             if(OS.DEBUG_COMMANDS)
@@ -168,6 +168,9 @@ namespace HollowZero
                 CommandManager.RegisterCommand("clearmal", DebugCommands.ClearMalware, false, true);
                 CommandManager.RegisterCommand("addcreds", DebugCommands.AddCredits, false, true);
                 CommandManager.RegisterCommand("delcreds", DebugCommands.RemoveCredits, false, true);
+                CommandManager.RegisterCommand("addmod", DebugCommands.AddMod, false, true);
+                CommandManager.RegisterCommand("upmod", DebugCommands.UpgradeMod, false, true);
+                CommandManager.RegisterCommand("addcor", DebugCommands.AddCorruption, false, true);
             }
 
             HZLog("Registering game events...");
@@ -183,6 +186,10 @@ namespace HollowZero
             {
                 HollowTimer.DecreaseTimers(osu);
             });
+            EventManager<OSUpdateEvent>.AddHandler(delegate (OSUpdateEvent osu)
+            {
+                RunPersistentModsAndCorruptions(osu);
+            });
             return true;
         }
 
@@ -194,6 +201,19 @@ namespace HollowZero
         public static string GetExtensionFilePath(string relativePath)
         {
             return ExtensionLoader.ActiveExtensionInfo.FolderPath + relativePath;
+        }
+
+        private static void RunPersistentModsAndCorruptions(OSUpdateEvent updateEvent)
+        {
+            foreach(var mod in CollectedMods.Where(m => m.Trigger == Modification.ModTriggers.Always))
+            {
+                mod.AltEffect(mod.PowerLevels[0]);
+            }
+
+            foreach(var cor in CollectedCorruptions.Where(c => c.Trigger == Modification.ModTriggers.Always))
+            {
+                cor.CorruptionEffect();
+            }
         }
 
         private static void ExtensionInit(OSLoadedEvent os_event)
@@ -575,6 +595,10 @@ namespace HollowZero
             var corr = corruption ??= GetCorruption();
 
             CollectedCorruptions.Add(corr);
+            if(corr.Trigger == Modification.ModTriggers.None)
+            {
+                corr.CorruptionEffect();
+            }
         }
 
         public static void UpgradeCorruption(Corruption corruption)
@@ -757,6 +781,10 @@ namespace HollowZero
     public static class HollowGlobalManager
     {
         public static Action<string,string> StartNewGameAction { get; internal set; }
+
+        public static string LastCustomThemePath { get; internal set; }
+        public static OSTheme LastOSTheme { get; internal set; }
+        public static OSTheme TargetTheme { get; internal set; } = OSTheme.HacknetBlue;
     }
 
     public static class HollowManager
@@ -797,6 +825,36 @@ namespace HollowZero
         public static void ForkbombComputer(Computer target)
         {
             Multiplayer.parseInputMessage($"eForkBomb {target.ip}", OS.currentInstance);
+        }
+
+        internal static void DrawTrueCenteredText(Rectangle bounds, string text, SpriteFont font, Color textColor = default)
+        {
+            textColor = textColor == default ? Color.White : textColor;
+            Vector2 textVector = font.MeasureString(text);
+            Vector2 textPosition = new Vector2(
+                (float)(bounds.X + bounds.Width / 2) - textVector.X / 2f,
+                (float)(bounds.Y + bounds.Height / 2) - textVector.Y / 2f);
+
+            GuiData.spriteBatch.DrawString(font, text, textPosition, textColor);
+        }
+
+        internal static void DrawFlickeringCenteredText(Rectangle bounds, string text, SpriteFont font, Color textColor = default)
+        {
+            textColor = textColor == default ? Color.White : textColor;
+            Vector2 textVector = font.MeasureString(text);
+            Vector2 textPosition = new Vector2(
+                (float)(bounds.X + bounds.Width / 2) - textVector.X / 2f,
+                (float)(bounds.Y + bounds.Height / 2) - textVector.Y / 2f);
+
+            Rectangle container = new Rectangle()
+            {
+                X = (int)textPosition.X,
+                Y = (int)textPosition.Y,
+                Width = (int)textVector.X,
+                Height = (int)textVector.Y
+            };
+
+            FlickeringTextEffect.DrawFlickeringText(container, text, 5f, 0.35f, font, OS.currentInstance, textColor);
         }
     }
 

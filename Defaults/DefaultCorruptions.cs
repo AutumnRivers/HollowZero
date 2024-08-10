@@ -34,9 +34,15 @@ namespace HollowZero
             public TerminalCorruption() : base("Display Module Corruption", "displaycorr")
             {
                 Trigger = ModTriggers.Always;
-                Effect = delegate (Computer comp)
+                CorruptionEffect = delegate ()
                 {
-                    OS.currentInstance.terminalOnlyMode = true;
+                    if (HollowGlobalManager.TargetTheme == OSTheme.TerminalOnlyBlack) return;
+                    HollowGlobalManager.LastCustomThemePath = ThemeManager.LastLoadedCustomThemePath;
+                    HollowGlobalManager.LastOSTheme = ThemeManager.currentTheme;
+                    HollowGlobalManager.TargetTheme = OSTheme.TerminalOnlyBlack;
+
+                    OS.currentInstance.EffectsUpdater.StartThemeSwitch(0.5f, OSTheme.TerminalOnlyBlack,
+                        OS.currentInstance);
                 };
                 Description = "Corrupts your display module files, forcing you into terminal only mode. Sucks to suck! " +
                     "View visible nodes with the 'listnodes' command.";
@@ -55,7 +61,16 @@ namespace HollowZero
             public override void Discard()
             {
                 base.Discard();
-                OS.currentInstance.terminalOnlyMode = false;
+                if(HollowGlobalManager.LastCustomThemePath != null)
+                {
+                    OS.currentInstance.EffectsUpdater.StartThemeSwitch(0.5f, OSTheme.Custom,
+                        OS.currentInstance, HollowGlobalManager.LastCustomThemePath);
+                } else
+                {
+                    OS.currentInstance.EffectsUpdater.StartThemeSwitch(0.5f, HollowGlobalManager.LastOSTheme,
+                        OS.currentInstance);
+                }
+                HollowGlobalManager.TargetTheme = OSTheme.HacknetBlue;
                 OS.currentInstance.terminal.writeLine("< :) > Display Module Restored");
             }
         }
@@ -63,7 +78,14 @@ namespace HollowZero
         private class CommandCorruption : Corruption
         {
             private const string TIMER_ID = "commandcorrupter";
-            private const int TIMER_SECONDS = 30;
+            private const int TIMER_SECONDS = 90;
+
+            private static readonly List<string> ValidCommands = new List<string>()
+            {
+                "ls", "cd", "scan", "ps", "kill", "connect", "disconnect",
+                "help", "exe", "cat", "scp", "rm", "openCDTray", "closeCDTray",
+                "mv", "upload", "analyze", "solve", "addNote"
+            };
 
             public CommandCorruption() : base("Command Runner Corruption", "cmdcorr")
             {
@@ -76,14 +98,28 @@ namespace HollowZero
                     Action corruptActionCommand = delegate ()
                     {
                         CommandDisabler.corruptedCommands.Clear();
-                        OS.currentInstance.warningFlash();
-                        for (int i = 0; i < PowerLevels[0]; i++)
+
+                        string GetRandomCommand()
                         {
                             var cmd = commands.GetRandom();
+                            if (CommandDisabler.badCommands.Contains(cmd) || CommandDisabler.corruptedCommands.Contains(cmd) ||
+                            !ValidCommands.Contains(cmd)) return GetRandomCommand();
+                            return cmd;
+                        };
+                        
+                        for (int i = 0; i < PowerLevels[0]; i++)
+                        {
+                            var cmd = GetRandomCommand();
                             CommandDisabler.corruptedCommands.Add(cmd);
+                            if (OS.DEBUG_COMMANDS)
+                            {
+                                Console.WriteLine($"{HollowZeroCore.HZLOG_PREFIX}" +
+                                    $"[CMD Corruptor] Disabling command {cmd}");
+                            }
                             OS.currentInstance.terminal.writeLine($"<X> Command '{cmd}' disabled due to system instability!");
                         }
                     };
+                    corruptActionCommand();
 
                     HollowTimer.AddTimer(TIMER_ID, TIMER_SECONDS, corruptActionCommand, true);
                 };

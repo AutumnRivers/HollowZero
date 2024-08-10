@@ -1,16 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using HarmonyLib;
+﻿using HarmonyLib;
 
 using Hacknet;
 using Hacknet.Gui;
 
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
+
 using HollowZero.Daemons;
 
 namespace HollowZero.Patches
@@ -33,7 +27,7 @@ namespace HollowZero.Patches
         [HarmonyPatch(typeof(OS),nameof(OS.drawModules))]
         public static void ShowInfecTrackerPatch(OS __instance)
         {
-            if (HollowZeroCore.GuidebookIsActive) return;
+            if (HollowZeroCore.CurrentUIState != HollowZeroCore.UIState.Game) return;
 
             var topBar = __instance.topBar;
             Rectangle infecTrackerBox = new Rectangle()
