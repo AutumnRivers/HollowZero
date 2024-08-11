@@ -169,7 +169,11 @@ namespace HollowZero
                     Random random = new Random();
                     int chance = random.Next(0, 100);
 
-                    if (chance <= PowerLevels[0]) return true;
+                    if (chance <= PowerLevels[0])
+                    {
+                        OS.currentInstance.write($"Stay vaxxed, kids! (Infection Gain Nullified :: {DisplayName})");
+                        return true;
+                    }
                     return false;
                 };
             }
@@ -249,12 +253,18 @@ namespace HollowZero
                 IsBlocker = true;
                 AltEffect = delegate (int infectionLevel)
                 {
-                    if (infectionLevel > 99)
+                    if (infectionLevel > 95)
                     {
                         HollowZeroCore.InfectionLevel = 95;
                     }
+                    LogCSECMessage();
                     Discard();
                 };
+            }
+
+            private void LogCSECMessage()
+            {
+                OS.currentInstance.write("thank us later xoxo -csec");
             }
 
             public override void Upgrade()
@@ -267,6 +277,7 @@ namespace HollowZero
                 AltEffect = delegate (int _)
                 {
                     HollowZeroCore.ClearInfection();
+                    LogCSECMessage();
                     Discard();
                 };
                 Upgraded = true;

@@ -29,7 +29,7 @@ namespace HollowZero.Patches
 
         private enum TabCategories
         {
-            Modifications, Corruptions, Malware, Progress
+            Modifications, Corruptions, Malware
         }
         private static TabCategories ActiveCategory = TabCategories.Modifications;
 
@@ -214,7 +214,7 @@ namespace HollowZero.Patches
             int yOffset = TallestTabHeight;
             corPanel ??= new ScrollableSectionedPanel((bounds.Height - TallestTabHeight) / 4, GuiData.spriteBatch.GraphicsDevice);
 
-            corPanel.NumberOfPanels = HollowZeroCore.CollectedMods.Count;
+            corPanel.NumberOfPanels = HollowZeroCore.CollectedCorruptions.Count;
 
             void drawCorruptionEntry(Corruption cor, Rectangle bounds)
             {

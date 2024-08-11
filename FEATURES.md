@@ -24,18 +24,18 @@
     - [ ] Waterfall
     - [ ] Cloudbleed (NP)
     - [ ] Cl0v3r's Gambit
-    - [ ] Vaccine Shot (NP)
+    - [X] Vaccine Shot
     - [ ] /el's Praise
-    - [ ] CSEC's Gift (NP)
+    - [X] CSEC's Gift
     - [ ] Coel's Aid (NP)
     - [ ] maskr
-- [ ] Corruptions
-    - [ ] Display Cor. (T)
+- [X] Corruptions
+    - [X] Display Cor.
     - [X] CMD Cor.
-    - [ ] PortHack Cor. (T)
-    - [ ] Shell Cor. (T)
+    - [X] PortHack Cor.
+    - [X] Shell Cor.
     - [X] Network Cor.
-    - [ ] Forkbomb Cor. (T)
+    - [X] Forkbomb Cor.
 - [ ] Events
     - [X] Dialogue Events
     - [X] Choice Events - also replaces Chance Events with unavoidable toggle

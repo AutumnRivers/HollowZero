@@ -163,7 +163,7 @@ namespace HollowZero
                 PowerLevels = new List<int>() { 50 };
                 CorruptionEffect = delegate ()
                 {
-                    PortHackExe.CRACK_TIME *= 100.0f / PowerLevels[0];
+                    PortHackExe.CRACK_TIME *= 1f + (PowerLevels[0] / 100f);
                 };
                 StepsLeft = DEFAULT_STEPS_LEFT;
             }
@@ -211,7 +211,6 @@ namespace HollowZero
                         int newSeconds = random.Next(CloseTimerMin, CloseTimerMax);
                         HollowTimer.ChangeTimer(TIMER_ID, newSeconds);
 
-                        OS.currentInstance.shells.Clear();
                         foreach(var exe in OS.currentInstance.exes.Where(e => e.GetType() == typeof(ShellExe))) {
                             exe.needsRemoval = true;
                         }
@@ -283,7 +282,7 @@ namespace HollowZero
             {
                 Trigger = ModTriggers.None;
                 Description = "Causes your PC to be forkbombed at random intervals.";
-                PowerLevels = new List<int>() { 15 };
+                PowerLevels = new List<int>() { 85 };
                 StepsLeft = DEFAULT_STEPS;
                 MinimumLayer = 20;
                 CorruptionEffect = delegate ()
@@ -299,6 +298,7 @@ namespace HollowZero
                     }
 
                     int chance = random.Next(0, 100);
+                    Console.WriteLine(chance);
                     if(chance < PowerLevels[0])
                     {
                         OS.currentInstance.terminal.writeLine("<!> HARDWARE FAILURE IMMINENT <!>");
@@ -336,6 +336,8 @@ namespace HollowZero
                         HollowTimer.AddTimer("majormalfunction_1", 6.0f, countdown1);
                         HollowTimer.AddTimer("majormalfunction_f", 10.0f, final);
                     };
+
+                    HollowTimer.AddTimer(TIMER_ID, MinTimerSeconds, CorruptionEffect, true);
                 };
             }
 

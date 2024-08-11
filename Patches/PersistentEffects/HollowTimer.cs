@@ -30,17 +30,16 @@ namespace HollowZero
                     if(RepeatTimers.ContainsKey(timer.Item1))
                     {
                         var newTimer = Tuple.Create(timer.Item1, RepeatTimers[timer.Item1], timer.Item3);
-                        timerChangeQueue.Add(timer, newTimer);
+                        ChangeTimer(timer.Item1, newTimer.Item2, timer.Item3);
                     } else
                     {
                         Console.WriteLine($"Removing timer {timer.Item1}...");
-                        timerRemovalQueue.Add(timer);
+                        RemoveTimer(timer.Item1);
                     }
                     continue;
                 } else
                 {
-                    Tuple<string, float, Action> replaceTuple = Tuple.Create(timer.Item1, timer.Item2 - seconds, timer.Item3);
-                    timerChangeQueue.Add(timer, replaceTuple);
+                    ChangeTimer(timer.Item1, timer.Item2 - seconds);
                     continue;
                 }
             }
@@ -118,7 +117,14 @@ namespace HollowZero
                 Action a = action ?? timer.Item3;
 
                 var newTimer = Tuple.Create(id, time, a);
-                timerChangeQueue.Add(timer, newTimer);
+
+                if(timerChangeQueue.ContainsKey(timer))
+                {
+                    timerChangeQueue[timer] = newTimer;
+                } else
+                {
+                    timerChangeQueue.Add(timer, newTimer);
+                }
             }
         }
 
@@ -131,6 +137,15 @@ namespace HollowZero
 
             timer = fTimer;
             return true;
+        }
+
+        internal static void ClearTimers()
+        {
+            timers.Clear();
+            timerAdditionQueue.Clear();
+            timerChangeQueue.Clear();
+            ActiveTimerIDs.Clear();
+            timerRemovalQueue.Clear();
         }
     }
 }

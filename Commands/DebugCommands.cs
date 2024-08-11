@@ -171,5 +171,15 @@ namespace HollowZero.Commands
                 return;
             }
         }
+
+        public static void ListTimers(OS os, string[] args)
+        {
+            foreach(var timer in HollowTimer.timers)
+            {
+                bool active = HollowTimer.ActiveTimerIDs.Contains(timer.Item1);
+                os.write($"Timer ID: {timer.Item1}, {timer.Item2.ToString("n2")}s left. " +
+                    "(" + (active ? "ACTIVE" : "INACTIVE") + ")");
+            }
+        }
     }
 }

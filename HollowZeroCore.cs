@@ -123,6 +123,8 @@ namespace HollowZero
             HarmonyInstance.PatchAll(typeof(HollowZeroCore).Assembly);
             ChoiceEventDaemon.ReadChoiceEventsFile();
 
+            ForkBombExe.RAM_CHANGE_PS = 144f;
+
             var possiblePacks = Directory.GetFiles(GetExtensionFilePath(DEFAULT_PACKS_FOLDER));
             foreach (var pck in possiblePacks)
             {
@@ -171,6 +173,7 @@ namespace HollowZero
                 CommandManager.RegisterCommand("addmod", DebugCommands.AddMod, false, true);
                 CommandManager.RegisterCommand("upmod", DebugCommands.UpgradeMod, false, true);
                 CommandManager.RegisterCommand("addcor", DebugCommands.AddCorruption, false, true);
+                CommandManager.RegisterCommand("timers", DebugCommands.ListTimers, false, true);
             }
 
             HZLog("Registering game events...");
@@ -191,6 +194,18 @@ namespace HollowZero
                 RunPersistentModsAndCorruptions(osu);
             });
             return true;
+        }
+
+        public override bool Unload()
+        {
+            HZLog("Resetting cracker values...");
+            ForkBombExe.RAM_CHANGE_PS = 150f;
+            PortHackExe.CRACK_TIME = 6f;
+
+            HZLog("Clearing timers...");
+            HollowTimer.ClearTimers();
+
+            return base.Unload();
         }
 
         private void HZLog(string message)
@@ -410,8 +425,27 @@ namespace HollowZero
             }
         }
 
-        private static void Overload()
+        private static void Overload(int newInfection)
         {
+            foreach (var mod in CollectedMods.Where(m => m.Trigger == Modification.ModTriggers.OnOverload))
+            {
+                if (mod.IsBlocker && mod.ChanceEffect != null)
+                {
+                    if (mod.ChanceEffect(OS.currentInstance.thisComputer)) return;
+                }
+                else if (mod.IsBlocker)
+                {
+                    mod.LaunchEffect(OS.currentInstance.thisComputer, newInfection);
+                    return;
+                }
+                else
+                {
+                    mod.LaunchEffect(OS.currentInstance.thisComputer, newInfection);
+                }
+            }
+
+            InfectionLevel = 0;
+
             OS os = OS.currentInstance;
             os.IncConnectionOverlay.sound1.Play();
 
@@ -458,10 +492,24 @@ namespace HollowZero
 
         public static void IncreaseInfection(int amount)
         {
+            foreach(var mod in CollectedMods.Where(m => m.Trigger == Modification.ModTriggers.OnInfectionGain))
+            {
+                if(mod.IsBlocker && mod.ChanceEffect != null)
+                {
+                    if (mod.ChanceEffect(OS.currentInstance.thisComputer)) return;
+                } else if(mod.IsBlocker)
+                {
+                    mod.LaunchEffect(OS.currentInstance.thisComputer, amount);
+                    return;
+                } else
+                {
+                    mod.LaunchEffect(OS.currentInstance.thisComputer, amount);
+                }
+            }
+
             if(InfectionLevel + amount >= 100)
             {
-                Overload();
-                InfectionLevel = 0;
+                Overload(InfectionLevel + amount);
             } else
             {
                 InfectionLevel += amount;
@@ -509,6 +557,21 @@ namespace HollowZero
 
         public static void AddMalware(Malware malware = null)
         {
+            foreach(var mod in CollectedMods.Where(m => m.Trigger == Modification.ModTriggers.OnOverload))
+            {
+                if(mod.IsBlocker && mod.ChanceEffect != null)
+                {
+                    if (mod.ChanceEffect(OS.currentInstance.thisComputer)) return;
+                } else if(mod.IsBlocker)
+                {
+                    mod.LaunchEffect(OS.currentInstance.thisComputer, InfectionLevel);
+                    return;
+                } else
+                {
+                    mod.LaunchEffect(OS.currentInstance.thisComputer, InfectionLevel);
+                }
+            }
+
             Malware GetMalware()
             {
                 Malware m = GetRandomMalware();
@@ -747,6 +810,24 @@ namespace HollowZero
         {
             if (Upgraded) return;
             Upgraded = true;
+        }
+
+        public void LaunchEffect(Computer comp = null, int alt = default)
+        {
+            if(Effect != null)
+            {
+                Effect(comp);
+                return;
+            }
+
+            if(AltEffect != null)
+            {
+                AltEffect(alt);
+                return;
+            }
+
+            Console.WriteLine(HollowZeroCore.HZLOG_PREFIX +
+                $"Couldn't determine effect for mod with ID of {ID}");
         }
     }
 
