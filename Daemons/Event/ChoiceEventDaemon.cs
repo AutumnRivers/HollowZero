@@ -18,6 +18,7 @@ using HollowZero.Choices;
 using Stuxnet_HN.Extensions;
 using System.Xml.Linq;
 using System.Linq;
+using BepInEx;
 
 namespace HollowZero.Daemons.Event
 {
@@ -294,6 +295,7 @@ namespace HollowZero.Daemons.Event
 
             Action DetermineActionFromType(string type, int amount = 0, string item = "", int currentContentPage = -1)
             {
+                type = type.ToLower();
                 switch (type)
                 {
                     case "upinf":
@@ -302,6 +304,42 @@ namespace HollowZero.Daemons.Event
                         return delegate () { HollowZeroCore.DecreaseInfection(amount); };
                     case "clearinf":
                         return delegate () { HollowZeroCore.ClearInfection(); };
+                    case "addmod":
+                        return delegate ()
+                        {
+                            if(!item.IsNullOrWhiteSpace() && HollowZeroCore.PossibleModifications.TryFind(m => m.ID == item, out var mod))
+                            {
+                                HollowManager.AddModification(mod);
+                            } else
+                            {
+                                HollowZeroCore.AddModification();
+                            }
+                        };
+                    case "addcorrupt":
+                        return delegate ()
+                        {
+                            if (!item.IsNullOrWhiteSpace() && HollowZeroCore.PossibleCorruptions.TryFind(m => m.ID == item, out var cor))
+                            {
+                                HollowManager.AddCorruption(cor);
+                            }
+                            else
+                            {
+                                HollowZeroCore.AddCorruption();
+                            }
+                        };
+                    case "addcreds": return delegate () { HollowZeroCore.AddPlayerCredits(amount); };
+                    case "takecreds": return delegate () { HollowZeroCore.RemovePlayerCredits(amount); };
+                    case "addmalware": return delegate ()
+                        {
+                            if (!item.IsNullOrWhiteSpace() && HollowZeroCore.PossibleMalware.TryFind(m => m.DisplayName == item, out var malware))
+                            {
+                                HollowManager.AddMalware(malware);
+                            }
+                            else
+                            {
+                                HollowZeroCore.AddMalware();
+                            }
+                        };
                     case "none":
                     default:
                         return delegate () { };

@@ -38,13 +38,24 @@ namespace HollowZero
                 Trigger = ModTriggers.EnterNode;
                 Effect = delegate (Computer comp)
                 {
-                    if (!OS.currentInstance.shells.Any() || !comp.hasProxy) return;
+                    List<ShellExe> shells = new List<ShellExe>();
+
+                    foreach(var exe in OS.currentInstance.exes)
+                    {
+                        if(exe is ShellExe shellExe)
+                        {
+                            shells.Add(shellExe);
+                        }
+                    }
+
+                    if (!shells.Any() || !comp.hasProxy) return;
                     if (!AddEffectToComp(comp)) return;
 
                     for(var i = 0; i < PowerLevels[0]; i++)
                     {
-                        if (OS.currentInstance.shells.Count < i + 1) return;
-                        OS.currentInstance.shells[i].StartOverload();
+                        if (i >= shells.Count) return;
+                        var shell = shells[i];
+                        shell.StartOverload();
                     }
                 };
             }
@@ -288,9 +299,10 @@ namespace HollowZero
         {
             public CoelModifier() : base("Coel's Aid", "coelaid")
             {
-                Trigger = ModTriggers.GainAdminAccess;
+                Trigger = ModTriggers.EnterNode;
                 Effect = delegate (Computer comp)
                 {
+                    if (comp.adminIP != OS.currentInstance.thisComputer.ip) return;
                     if (comp.getDaemon(typeof(WhitelistConnectionDaemon)) == null) return;
 
                     OS.currentInstance.runCommand("ls");
@@ -331,8 +343,8 @@ namespace HollowZero
                 IsBlocker = true;
                 TraceEffect = delegate (float traceTime)
                 {
-                    float newTime = traceTime * (PowerLevels[0] / 100.0f);
-                    OS.currentInstance.traceTracker.start(newTime);
+                    float newTime = traceTime + (traceTime * (PowerLevels[0] / 100.0f));
+                    TraceManager.StartTrace(newTime);
                 };
             }
 

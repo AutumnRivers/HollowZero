@@ -897,8 +897,14 @@ namespace HollowZero
 
         public static void AddCorruption(Corruption corruption)
         {
-            if (HollowZeroCore.CollectedCorruptions.Contains(corruption)) return;
+            if (HollowZeroCore.CollectedCorruptions.Any(c => c.ID == corruption.ID)) return;
             HollowZeroCore.AddCorruption(corruption);
+        }
+
+        public static void AddModification(Modification mod)
+        {
+            if (HollowZeroCore.CollectedMods.Any(m => m.ID == mod.ID)) return;
+            HollowZeroCore.AddModification(mod);
         }
 
         public static void ForkbombComputer(Computer target)

@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Hacknet;
 
 using HarmonyLib;
+using static MonoMod.Cil.RuntimeILReferenceBag.FastDelegateInvokers;
 
 namespace HollowZero
 {
@@ -16,17 +17,31 @@ namespace HollowZero
         private static List<Modification> Modifications => HollowZeroCore.CollectedMods;
         private static List<Corruption> Corruptions => HollowZeroCore.CollectedCorruptions;
 
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(Computer), nameof(Computer.connect))]
+        public static void CheckModConnectionPostfix(Computer __instance, string ipFrom, bool __result)
+        {
+            if (ipFrom != OS.currentInstance.thisComputer.ip) return;
+            if (!__result) return;
+
+            // This fixes a bug in QuikStrike where shells couldn't be overloaded since
+            // QuikStrike fires before Hacknet sets the connectedComp property.
+            // There might be SOME edge case where this completely breaks things...
+            // but it is a risk I am willing to take. YOLO, and all that.
+            OS.currentInstance.connectedComp = __instance;
+
+            foreach (var mod in Modifications.Where(m => m.Trigger == Modification.ModTriggers.EnterNode))
+            {
+                mod.Effect(__instance);
+            }
+        }
+
         [HarmonyPrefix]
         [HarmonyPatch(typeof(Computer),nameof(Computer.connect))]
         public static bool CheckModNodeConnection(Computer __instance, string ipFrom, ref bool __result)
         {
             if (ipFrom != OS.currentInstance.thisComputer.ip) return true;
             bool okayToRun = true;
-
-            foreach (var mod in Modifications.Where(m => m.Trigger == Modification.ModTriggers.EnterNode))
-            {
-                mod.Effect(__instance);
-            }
 
             foreach(var cor in Corruptions.Where(c => c.Trigger == Modification.ModTriggers.EnterNode))
             {
@@ -51,6 +66,23 @@ namespace HollowZero
             }
 
             return okayToRun;
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(Computer),nameof(Computer.disconnecting))]
+        public static void CheckModDisconnection(Computer __instance, string ipFrom)
+        {
+            if (ipFrom != OS.currentInstance.thisComputer.ip) return;
+
+            foreach (var mod in Modifications.Where(m => m.Trigger == Modification.ModTriggers.ExitNode))
+            {
+                mod.Effect(__instance);
+            }
+
+            foreach (var cor in Corruptions.Where(m => m.Trigger == Modification.ModTriggers.ExitNode))
+            {
+                cor.CorruptionEffect();
+            }
         }
 
         [HarmonyPrefix]
@@ -114,6 +146,31 @@ namespace HollowZero
             }
 
             return okayToRun;
+        }
+    }
+
+    public static class TraceManager
+    {
+        public static void StartTrace(float time)
+        {
+            var trace = OS.currentInstance.traceTracker;
+            OS os = OS.currentInstance;
+
+            if(!trace.active)
+            {
+                trace.trackSpeedFactor = 1f;
+                trace.startingTimer = time;
+                trace.timer = time;
+                trace.active = true;
+                os.warningFlash();
+                trace.target = ((os.connectedComp == null) ? os.thisComputer : os.connectedComp);
+                Console.WriteLine("Warning flash");
+            }
+        }
+
+        public static void StopTrace()
+        {
+            OS.currentInstance.traceTracker.active = false;
         }
     }
 }

@@ -20,15 +20,15 @@
     - [ ] Packet Storm (T)
     - [ ] FireScramble - Might need new `NodeGenerated` trigger...?
 - [ ] Modifications
-    - [ ] QuikStrike (T)
-    - [ ] Waterfall (T)
-    - [ ] Cloudbleed (NP) (T)
-    - [ ] Cl0v3r's Gambit (T)
+    - [X] QuikStrike
+    - [X] Waterfall
+    - [ ] Cloudbleed (NP) - Forkbombs practically need to be rewritten. Hold off on this
+    - [X] Cl0v3r's Gambit
     - [X] Vaccine Shot
-    - [ ] /el's Praise (T)
+    - [X] /el's Praise
     - [X] CSEC's Gift
-    - [ ] Coel's Aid (NP)
-    - [ ] maskr (T)
+    - [X] Coel's Aid
+    - [X] maskr
 - [X] Corruptions
     - [X] Display Cor.
     - [X] CMD Cor.
@@ -41,7 +41,7 @@
     - [X] Choice Events - also replaces Chance Events with unavoidable toggle
     - [X] Rest Stops
     - [ ] Story Events
-    - [ ] Multi-Page Events
+    - [X] Multi-Page Events
 - [ ] Shops
     - [X] Program Shops
     - [X] Gacha Shops
