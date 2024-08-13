@@ -14,7 +14,6 @@ namespace HollowZero.Patches
     [HarmonyPatch]
     public class CommandDisabler
     {
-        internal readonly static string[] badCommands = { "probe", "login", "reboot" };
         internal readonly static List<string> corruptedCommands = new List<string>();
 
         [HarmonyPrefix]
@@ -23,14 +22,6 @@ namespace HollowZero.Patches
         {
             string command = __instance.currentLine.Split(' ')[0].ToLower();
             OS os = OS.currentInstance;
-
-            if (badCommands.Contains(command)) {
-                os.terminal.writeLine($"The command '{command}' is disabled by your local administrator.");
-                __instance.currentLine = "";
-                TextBox.cursorPosition = 0;
-                TextBox.textDrawOffsetPosition = 0;
-                return false;
-            }
 
             if(corruptedCommands.Contains(command) ||
                 ((corruptedCommands.Contains("disconnect") || corruptedCommands.Contains("dc")) &&

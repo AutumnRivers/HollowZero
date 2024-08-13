@@ -19,16 +19,16 @@
     - [ ] Dropper (T)
     - [ ] Packet Storm (T)
     - [ ] FireScramble - Might need new `NodeGenerated` trigger...?
-- [ ] Modifications (T)
-    - [ ] QuikStrike
-    - [ ] Waterfall
-    - [ ] Cloudbleed (NP)
-    - [ ] Cl0v3r's Gambit
+- [ ] Modifications
+    - [ ] QuikStrike (T)
+    - [ ] Waterfall (T)
+    - [ ] Cloudbleed (NP) (T)
+    - [ ] Cl0v3r's Gambit (T)
     - [X] Vaccine Shot
-    - [ ] /el's Praise
+    - [ ] /el's Praise (T)
     - [X] CSEC's Gift
     - [ ] Coel's Aid (NP)
-    - [ ] maskr
+    - [ ] maskr (T)
 - [X] Corruptions
     - [X] Display Cor.
     - [X] CMD Cor.

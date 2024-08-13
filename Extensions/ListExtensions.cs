@@ -10,6 +10,8 @@ namespace HollowZero
     {
         public static T GetRandom<T>(this List<T> e)
         {
+            if (!e.Any()) return default;
+
             Random random = new Random();
             int index = random.Next(e.Count());
 
@@ -31,6 +33,8 @@ namespace HollowZero
 
         public static T GetRandom<T>(this IEnumerable<T> e)
         {
+            if (!e.Any()) return default;
+
             if (!e.Any()) return default;
             Random random = new Random();
             int index = random.Next(e.Count());

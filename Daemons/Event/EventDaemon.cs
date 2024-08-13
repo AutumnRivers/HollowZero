@@ -1,4 +1,6 @@
-﻿using Hacknet;
+﻿using System.Collections.Generic;
+using System.Linq;
+using Hacknet;
 using Hacknet.Gui;
 
 using Microsoft.Xna.Framework;
@@ -18,7 +20,13 @@ namespace HollowZero.Daemons.Event
         public bool OneShot => bool.Parse(IsOneShot);
 
         public string EventTitle;
+        public string EventFirstContactContent;
         public string EventContent;
+
+        public List<string> ContentPages = new List<string>();
+        public int CurrentPage { get; private set; } = 0;
+
+        public bool HasFirstContact { get { return EventFirstContactContent != null; } }
 
         public readonly SpriteFont TitleFont = GuiData.font;
         public readonly SpriteFont ContentFont = GuiData.smallfont;
@@ -30,6 +38,16 @@ namespace HollowZero.Daemons.Event
             int offset = 50;
             string content = EventContent.ToString();
 
+            if(HasFirstContact && !HollowZeroCore.SeenEvents.Contains(EventTitle))
+            {
+                content = EventFirstContactContent;
+            }
+            if(ContentPages.Any())
+            {
+                ContentPages[0] = content;
+                content = ContentPages[CurrentPage];
+            }
+
             DrawCenteredText(bounds, EventTitle, TitleFont, bounds.Y + offset);
             offset += GetStringHeight(TitleFont, EventTitle) + 10;
             DrawHorizontalSeparator(bounds, bounds.Y + offset);
@@ -40,6 +58,39 @@ namespace HollowZero.Daemons.Event
             TextItem.doSmallLabel(new Vector2(bounds.X + DEFAULT_OFFSET, bounds.Y + offset), parsedContent, Color.White);
 
             return offset;
+        }
+
+        public void ChangePage(int page)
+        {
+            if (!ContentPages.Any()) return;
+            if (page < 0)
+            {
+                CurrentPage = 0;
+                return;
+            }
+
+            if(ContentPages.Count > page)
+            {
+                CurrentPage = page;
+            } else
+            {
+                CurrentPage = ContentPages.Count - 1;
+            }
+        }
+    }
+
+    public class CustomEvent
+    {
+        public string Title;
+        public string FirstContactContent;
+        public string Content;
+        public bool Unavoidable = false;
+
+        public List<string> ContentPages = new List<string>();
+
+        public bool HasFirstContact
+        {
+            get { return FirstContactContent != null; }
         }
     }
 

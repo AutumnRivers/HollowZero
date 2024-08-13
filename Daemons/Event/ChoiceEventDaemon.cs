@@ -16,6 +16,8 @@ using Pathfinder.Util;
 using HollowZero.Choices;
 
 using Stuxnet_HN.Extensions;
+using System.Xml.Linq;
+using System.Linq;
 
 namespace HollowZero.Daemons.Event
 {
@@ -51,6 +53,7 @@ namespace HollowZero.Daemons.Event
             base.initFiles();
 
             choiceEvent = PossibleEvents.GetRandom();
+            ContentPages = choiceEvent.ContentPages;
 
             EventTitle = choiceEvent.Title;
             EventContent = choiceEvent.Content;
@@ -70,6 +73,9 @@ namespace HollowZero.Daemons.Event
             }
         }
 
+        public bool tookAction = false;
+        public int ContinueButtonID = PFButton.GetNextID();
+
         public override void draw(Rectangle bounds, SpriteBatch sb)
         {
             base.draw(bounds, sb);
@@ -77,6 +83,17 @@ namespace HollowZero.Daemons.Event
             DrawEventTemplate(bounds);
 
             int buttonOffset = 75;
+            if(tookAction)
+            {
+                var b = new HollowButton(ContinueButtonID, bounds.X + 25,
+                    bounds.Y + bounds.Height - buttonOffset, bounds.Width - 50, 50, "Continue...",
+                    OS.currentInstance.defaultHighlightColor);
+                b.OnPressed = delegate () { RemoveDaemon(); };
+                b.DoButton();
+
+                return;
+            }
+
             for (var i = choiceEvent.Choices.Count - 1; i > -1; i--)
             {
                 var choice = choiceEvent.Choices[i];
@@ -103,6 +120,10 @@ namespace HollowZero.Daemons.Event
                 {
                     if (choice.OnPressed != null)
                     {
+                        if(choice.Page > 0)
+                        {
+                            EventContent = ContentPages[choice.Page];
+                        }
                         choice.OnPressed.Invoke();
                     }
                     else
@@ -115,6 +136,10 @@ namespace HollowZero.Daemons.Event
                         {
                             if (luckValue < chance.Key)
                             {
+                                if(chance.Value.Page > 0)
+                                {
+                                    EventContent = ContentPages[chance.Value.Page];
+                                }
                                 chance.Value.Trigger.Invoke();
                                 break;
                             }
@@ -126,7 +151,7 @@ namespace HollowZero.Daemons.Event
                         UnavoidableEventDaemon.UnlockModules();
                     }
 
-                    RemoveDaemon();
+                    tookAction = true;
                 };
                 b.DoButton();
                 buttonOffset += 60;
@@ -135,156 +160,141 @@ namespace HollowZero.Daemons.Event
 
         public const string XML_TAG = "HollowZeroChoiceEvents";
 
-        public static void ReadChoiceEventsFile(string filename = "")
+        public static void ReadChoiceEventsFileRewrite(string filename = "")
         {
             filename = filename == "" ? ExtensionLoader.ActiveExtensionInfo.FolderPath + DEFAULT_EVENTS_FILE_PATH : filename;
             if (!File.Exists(filename)) { return; }
 
-            Console.WriteLine(HollowZeroCore.HZLOG_PREFIX + "Reading choice events...");
+            Console.WriteLine(HollowZeroCore.HZLOG_PREFIX + "[Rewrite] Reading choice events...");
 
             FileStream eventsFileStream = File.OpenRead(filename);
             XmlReader xml = XmlReader.Create(eventsFileStream);
+            XDocument choiceDocument = XDocument.Load(xml);
 
-            List<ChoiceEvent> choiceEvents = new List<ChoiceEvent>();
+            var choiceEvents = choiceDocument.Root.Elements("ChoiceEvent");
 
-            while(xml.Name != XML_TAG)
+            foreach(var ev in choiceEvents)
             {
-                xml.Read();
-                if(xml.EOF)
+                ChoiceEvent cev = new ChoiceEvent()
                 {
-                    throw new FormatException(HollowZeroCore.HZLOG_PREFIX + $"Unexpected end of file looking for {XML_TAG} tag.");
+                    Title = ev.ReadRequiredAttribute("Title")
+                };
+                List<XAttribute> attributes = ev.Attributes().ToList();
+                List<XElement> children = ev.Elements().ToList();
+
+                if(attributes.TryFind(a => a.Name == "Unavoidable", out var unav))
+                {
+                    cev.Unavoidable = bool.Parse(unav.Value);
                 }
+
+                if(children.TryFind(c => c.Name == "FirstContact", out var firstContactElem))
+                {
+                    cev.FirstContactContent = firstContactElem.Value;
+                }
+
+                var content = ev.GetRequiredChild("Content");
+                if(content.IsEmpty) { throw new MissingContentException(content); }
+                cev.Content = content.Value;
+                
+                if(!cev.ContentPages.Any())
+                {
+                    cev.ContentPages.Add(cev.Content);
+                }
+
+                if(!children.Any(c => c.Name == "Choice")) { throw new FormatException("Missing choices in choice event " + cev.Title); }
+
+                foreach(var choice in children.Where(c => c.Name == "Choice"))
+                {
+                    cev.Choices.Add(ReadChoiceDocument(choice, ref cev));
+                }
+
+                Console.WriteLine(HollowZeroCore.HZLOG_PREFIX + "" +
+                    $"[Rewrite] Registering choice event {cev.Title}...");
+                PossibleEvents.Add(cev);
             }
 
-            do
+            eventsFileStream.Close();
+            xml.Close();
+
+            Choice ReadChoiceDocument(XElement choiceElement, ref ChoiceEvent choiceEvent)
             {
-                xml.Read();
+                int currentPage = 1;
 
-                if(xml.Name == XML_TAG && !xml.IsStartElement())
-                {
-                    PossibleEvents = choiceEvents;
-                    xml.Close();
-                    Console.WriteLine(HollowZeroCore.HZLOG_PREFIX + "Choice events successfully added.");
-                    return;
-                }
-
-                if(xml.Name == "ChoiceEvent" && xml.IsStartElement())
-                {
-                    ChoiceEvent ev = new ChoiceEvent()
-                    {
-                        Title = xml.ReadRequiredAttribute("Title")
-                    };
-
-                    if(xml.MoveToAttribute("Unavoidable"))
-                    {
-                        ev.Unavoidable = bool.Parse(xml.ReadContentAsString().ToLower());
-                    }
-
-                    do
-                    {
-                        xml.Read();
-
-                        if(xml.Name == "Content" && xml.IsStartElement())
-                        {
-                            ev.Content = xml.ReadElementContentAsString();
-                        }
-
-                        if(xml.Name == "Choice" && (xml.IsEmptyElement || xml.IsStartElement()))
-                        {
-                            Choice choice = ReadChoiceXML(xml);
-                            ev.Choices.Add(choice);
-                        }
-                    } while (xml.Name != "ChoiceEvent");
-                    choiceEvents.Add(ev);
-                }
-            } while (!xml.EOF);
-            throw new FormatException(HollowZeroCore.HZLOG_PREFIX + "Unexpected end-of-file while reading Hollow Zero choice events XML!");
-
-            Choice ReadChoiceXML(XmlReader xml)
-            {
-                bool hasChances = !xml.IsEmptyElement;
                 Choice choice = new Choice()
                 {
-                    Title = xml.ReadRequiredAttribute("Title"),
-                    Subtext = xml.ReadRequiredAttribute("Subtext"),
-                    Color = ColorUtils.FromString(xml.ReadRequiredAttribute("Color"))
+                    Title = choiceElement.ReadRequiredAttribute("Title"),
+                    Subtext = choiceElement.ReadRequiredAttribute("Subtext"),
+                    Color = ColorUtils.FromString(choiceElement.ReadRequiredAttribute("Color")),
+                    ParentEvent = choiceEvent,
+                    ChoiceAmount = -1,
+                    ChoiceItem = ""
                 };
+                bool isChance = choiceElement.Elements().Any(c => c.Name == "ChoiceChance");
 
-                if (!hasChances)
+                if(!isChance)
                 {
-                    string type = xml.ReadRequiredAttribute("Type");
-                    choice.ChoiceType = type;
-                    int amount = 0;
-                    string item = "";
-
-                    if (xml.MoveToAttribute("Amount"))
+                    choice.ChoiceType = choiceElement.ReadRequiredAttribute("Type");
+                    if(choiceElement.Attributes().ToList().TryFind(a => a.Name == "Amount", out var amAttr))
                     {
-                        amount = int.Parse(xml.ReadContentAsString());
+                        choice.ChoiceAmount = int.Parse(amAttr.Value);
                     }
-
-                    if (xml.MoveToAttribute("Item"))
+                    if(choiceElement.Attributes().ToList().TryFind(a => a.Name == "ItemID", out var itemAttr))
                     {
-                        item = xml.ReadContentAsString();
+                        choice.ChoiceItem = itemAttr.Value;
                     }
-
-                    choice.ChoiceAmount = amount;
-                    choice.ChoiceItem = item;
-
-                    choice.OnPressed = DetermineActionFromType(type, amount, item);
+                    if(!choiceElement.IsEmpty)
+                    {
+                        choiceEvent.ContentPages.Add(choiceElement.Value);
+                        choice.Page = choiceEvent.ContentPages.Count - 1;
+                        currentPage++;
+                    }
+                    choice.OnPressed = delegate ()
+                    {
+                        DetermineActionFromType(choice.ChoiceType, choice.ChoiceAmount, choice.ChoiceItem).Invoke();
+                    };
                 } else
                 {
-                    int luck = 0;
-                    List<KeyValuePair<int, ChoiceChance>> percentChanceList = new List<KeyValuePair<int, ChoiceChance>>();
-                    do
+                    foreach(var chance in choiceElement.Elements().Where(c => c.Name == "ChoiceChance"))
                     {
-                        xml.Read();
-
-                        if (xml.Name == "ChoiceChance")
+                        ChoiceChance choiceChance = new ChoiceChance()
                         {
-                            ChoiceChance chance = new ChoiceChance();
-
-                            int chancePercent = int.Parse(xml.ReadRequiredAttribute("Chance"));
-                            string type = xml.ReadRequiredAttribute("Type");
-                            int amount = 0;
-                            string item = "";
-
-                            if (xml.MoveToAttribute("Amount"))
-                            {
-                                amount = int.Parse(xml.ReadContentAsString());
-                            }
-
-                            if (xml.MoveToAttribute("Item"))
-                            {
-                                item = xml.ReadContentAsString();
-                            }
-
-                            Action action = DetermineActionFromType(type, amount, item);
-
-                            chance.ChoiceType = type;
-                            chance.ChoiceAmount = amount;
-                            chance.ChoiceItem = item;
-                            chance.Trigger = action;
-
-                            percentChanceList.Add(new KeyValuePair<int, ChoiceChance>(chancePercent, chance));
+                            ChoiceType = chance.ReadRequiredAttribute("Type"),
+                            ChoiceAmount = -1,
+                            ChoiceItem = ""
+                        };
+                        List<XAttribute> attributes = chance.Attributes().ToList();
+                        
+                        if(attributes.TryFind(a => a.Name == "Amount", out var amAttr))
+                        {
+                            choiceChance.ChoiceAmount = int.Parse(amAttr.Value);
                         }
-                    } while (xml.Name != "Choice");
+                        if(attributes.TryFind(a => a.Name == "ItemID", out var itemAttr))
+                        {
+                            choiceChance.ChoiceItem = itemAttr.Value;
+                        }
+                        if(!chance.IsEmpty)
+                        {
+                            choiceEvent.ContentPages.Add(chance.Value);
+                            choiceChance.Page = choiceEvent.ContentPages.Count - 1;
+                            currentPage++;
+                        }
 
-                    percentChanceList.Sort(new SmallestKeyFirst());
-                    foreach(var pChance in percentChanceList)
-                    {
-                        luck += pChance.Key;
-                        choice.Chances.Add(luck, pChance.Value);
+                        choiceChance.Trigger = delegate ()
+                        {
+                            DetermineActionFromType(choiceChance.ChoiceType, choiceChance.ChoiceAmount, choiceChance.ChoiceItem).Invoke();
+                        };
+                        int luck = int.Parse(chance.ReadRequiredAttribute("Chance"));
+
+                        choice.Chances.Add(luck, choiceChance);
                     }
-
-                    choice.TotalLuckValue = luck;
                 }
 
                 return choice;
             }
 
-            Action DetermineActionFromType(string type, int amount = 0, string item = "")
+            Action DetermineActionFromType(string type, int amount = 0, string item = "", int currentContentPage = -1)
             {
-                switch(type)
+                switch (type)
                 {
                     case "upinf":
                         return delegate () { HollowZeroCore.IncreaseInfection(amount); };
@@ -311,6 +321,8 @@ namespace HollowZero.Daemons.Event
         public string ChoiceItem;
         public bool Disabled = false;
         public int ButtonID = PFButton.GetNextID();
+        public ChoiceEvent ParentEvent;
+        public int Page = -1;
 
         public SortedDictionary<int, ChoiceChance> Chances = new SortedDictionary<int, ChoiceChance>(new SmallestFirst());
         public int TotalLuckValue = 100;
@@ -322,6 +334,7 @@ namespace HollowZero.Daemons.Event
         public string ChoiceType;
         public int ChoiceAmount;
         public string ChoiceItem;
+        public int Page = -1;
     }
 
     public class SmallestFirst : Comparer<int>
@@ -352,11 +365,8 @@ namespace HollowZero.Daemons.Event
         }
     }
 
-    public class ChoiceEvent
+    public class ChoiceEvent : CustomEvent
     {
-        public string Title;
-        public string Content;
-        public bool Unavoidable = false;
         public List<Choice> Choices = new List<Choice>();
     }
 

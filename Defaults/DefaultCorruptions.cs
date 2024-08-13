@@ -102,7 +102,7 @@ namespace HollowZero
                         string GetRandomCommand()
                         {
                             var cmd = commands.GetRandom();
-                            if (CommandDisabler.badCommands.Contains(cmd) || CommandDisabler.corruptedCommands.Contains(cmd) ||
+                            if (CommandDisabler.corruptedCommands.Contains(cmd) ||
                             !ValidCommands.Contains(cmd)) return GetRandomCommand();
                             return cmd;
                         };

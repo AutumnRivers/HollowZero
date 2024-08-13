@@ -96,6 +96,8 @@ namespace HollowZero
         public static uint PlayerCredits { get; internal set; }
         public static int CurrentLayer { get; internal set; }
 
+        public static bool ShowInfecTracker = true;
+
         //internal static List<string> loadedPacks = new List<string>();
         internal static Dictionary<string, string> knownPacks = new Dictionary<string, string>();
         internal static List<Assembly> knownPackAsms = new List<Assembly>();
@@ -121,7 +123,7 @@ namespace HollowZero
 
             HZLog("Initializing...");
             HarmonyInstance.PatchAll(typeof(HollowZeroCore).Assembly);
-            ChoiceEventDaemon.ReadChoiceEventsFile();
+            ChoiceEventDaemon.ReadChoiceEventsFileRewrite();
 
             ForkBombExe.RAM_CHANGE_PS = 144f;
 
@@ -237,6 +239,7 @@ namespace HollowZero
             {
                 Mode = config.mode;
                 EnableTrinity = config.enableTrinity;
+                ShowInfecTracker = config.mode == "Endless" || config.launchInfecTracker;
             }
 
             var placeOnNetMap = new Stuxnet_HN.Actions.Nodes.PlaceOnNetMap
@@ -720,11 +723,6 @@ namespace HollowZero
          * of these things to be propogated by HZConfig or Hollow Packs.
          */
         public bool disableBuiltInAssets = false;
-
-        /*
-         * If set to true, commands that can cheese HZ such as probe and reboot will be disabled.
-         */
-        public bool disableCheeseCommands = true;
     }
 
     public class Malware
@@ -827,7 +825,7 @@ namespace HollowZero
             }
 
             Console.WriteLine(HollowZeroCore.HZLOG_PREFIX +
-                $"Couldn't determine effect for mod with ID of {ID}");
+                $"Couldn't determine effect for modification with ID of {ID}");
         }
     }
 

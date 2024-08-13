@@ -27,7 +27,7 @@ namespace HollowZero.Patches
         [HarmonyPatch(typeof(OS),nameof(OS.drawModules))]
         public static void ShowInfecTrackerPatch(OS __instance)
         {
-            if (HollowZeroCore.CurrentUIState != HollowZeroCore.UIState.Game) return;
+            if (HollowZeroCore.CurrentUIState != HollowZeroCore.UIState.Game || !HollowZeroCore.ShowInfecTracker) return;
 
             var topBar = __instance.topBar;
             Rectangle infecTrackerBox = new Rectangle()
