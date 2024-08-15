@@ -19,10 +19,10 @@
     - [ ] Dropper (T)
     - [ ] Packet Storm (T)
     - [ ] FireScramble - Might need new `NodeGenerated` trigger...?
-- [ ] Modifications
+- [X] Modifications
     - [X] QuikStrike
     - [X] Waterfall
-    - [ ] Cloudbleed (NP) - Forkbombs practically need to be rewritten. Hold off on this
+    - [X] Cloudbleed
     - [X] Cl0v3r's Gambit
     - [X] Vaccine Shot
     - [X] /el's Praise

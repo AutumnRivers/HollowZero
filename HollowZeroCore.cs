@@ -112,6 +112,8 @@ namespace HollowZero
         internal static bool EnableTrinity { get; set; }
         internal static string Mode { get; set; }
 
+        public static float ForkbombMultiplier { get; internal set; } = 1.0f;
+
         public override bool Load()
         {
             CollectedMalware = new List<Malware>();
@@ -124,8 +126,6 @@ namespace HollowZero
             HZLog("Initializing...");
             HarmonyInstance.PatchAll(typeof(HollowZeroCore).Assembly);
             ChoiceEventDaemon.ReadChoiceEventsFileRewrite();
-
-            ForkBombExe.RAM_CHANGE_PS = 144f;
 
             var possiblePacks = Directory.GetFiles(GetExtensionFilePath(DEFAULT_PACKS_FOLDER));
             foreach (var pck in possiblePacks)
@@ -176,6 +176,7 @@ namespace HollowZero
                 CommandManager.RegisterCommand("upmod", DebugCommands.UpgradeMod, false, true);
                 CommandManager.RegisterCommand("addcor", DebugCommands.AddCorruption, false, true);
                 CommandManager.RegisterCommand("timers", DebugCommands.ListTimers, false, true);
+                CommandManager.RegisterCommand("setfbs", DebugCommands.SetForkbombSpeed, false, true);
             }
 
             HZLog("Registering game events...");
@@ -195,13 +196,16 @@ namespace HollowZero
             {
                 RunPersistentModsAndCorruptions(osu);
             });
+            EventManager<OSUpdateEvent>.AddHandler(delegate (OSUpdateEvent osu)
+            {
+                ForkbombSpeedFix.AddToNewForkbombRamCost(osu);
+            });
             return true;
         }
 
         public override bool Unload()
         {
             HZLog("Resetting cracker values...");
-            ForkBombExe.RAM_CHANGE_PS = 150f;
             PortHackExe.CRACK_TIME = 6f;
 
             HZLog("Clearing timers...");
@@ -629,6 +633,10 @@ namespace HollowZero
             var modification = mod ??= GetModification();
 
             CollectedMods.Add(modification);
+            if(modification.Trigger == Modification.ModTriggers.None)
+            {
+                modification.Effect(null);
+            }
         }
 
         public static void UpgradeModification(Modification mod = null)

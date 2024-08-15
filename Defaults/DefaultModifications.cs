@@ -110,13 +110,16 @@ namespace HollowZero
 
         private class CloudbleedModifier : Modification
         {
+            private float multiplier;
+
             public CloudbleedModifier() : base("Cloudbleed", "cloudbleed")
             {
-                PowerLevels = new List<int>() { 10 };
-                Trigger = ModTriggers.OnForkbomb;
+                PowerLevels = new List<int>() { 20 };
+                multiplier = 1.0f - (PowerLevels[0] * 0.01f);
+                Trigger = ModTriggers.None;
                 Effect = delegate (Computer comp)
                 {
-                    return; // The patch handles this
+                    HollowZeroCore.ForkbombMultiplier = multiplier;
                 };
             }
 
@@ -128,13 +131,25 @@ namespace HollowZero
                 }
             }
 
+            public override void Discard()
+            {
+                HollowZeroCore.ForkbombMultiplier = 1.0f;
+                base.Discard();
+            }
+
             public override void Upgrade()
             {
                 if (Upgraded) return;
                 base.Upgrade();
 
                 DisplayName = "Cloudgash";
-                PowerLevels = new List<int>() { 25 };
+                PowerLevels = new List<int>() { 35 };
+                ResetMultiplier();
+            }
+
+            private void ResetMultiplier()
+            {
+                multiplier = 1.0f - (PowerLevels[0] * 0.01f);
             }
         }
 

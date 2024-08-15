@@ -36,16 +36,8 @@ namespace HollowZero.Patches
 
             if(command == "forkbomb" && os.connectedComp == os.thisComputer)
             {
+                if (OS.DEBUG_COMMANDS) return true;
                 os.terminal.writeLine("But then you think to yourself, 'why would I forkbomb my own system? That's stupid.'");
-                __instance.currentLine = "";
-                TextBox.cursorPosition = 0;
-                TextBox.textDrawOffsetPosition = 0;
-                return false;
-            }
-
-            if(command == "ls" && !os.connectedComp.PlayerHasAdminPermissions())
-            {
-                os.terminal.writeLine("You cannot see, you are legally blind. (Insuffucient Permissions)");
                 __instance.currentLine = "";
                 TextBox.cursorPosition = 0;
                 TextBox.textDrawOffsetPosition = 0;

@@ -181,5 +181,24 @@ namespace HollowZero.Commands
                     "(" + (active ? "ACTIVE" : "INACTIVE") + ")");
             }
         }
+
+        public static void SetForkbombSpeed(OS os, string[] args)
+        {
+            if(args.Length < 2)
+            {
+                os.write("no");
+                os.validCommand = false;
+                return;
+            }
+
+            if (!float.TryParse(args[1], out float mult))
+            {
+                os.write("that's not a float, IDIOT!");
+                os.validCommand = false;
+                return;
+            }
+
+            HollowZeroCore.ForkbombMultiplier = mult;
+        }
     }
 }
