@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Xml;
+using System.Xml.Linq;
+using System.Linq;
 
 using Hacknet;
 using Hacknet.Extensions;
-using Hacknet.Gui;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -13,11 +14,6 @@ using Microsoft.Xna.Framework.Graphics;
 using Pathfinder.GUI;
 using Pathfinder.Util;
 
-using HollowZero.Choices;
-
-using Stuxnet_HN.Extensions;
-using System.Xml.Linq;
-using System.Linq;
 using BepInEx;
 
 namespace HollowZero.Daemons.Event
@@ -25,6 +21,8 @@ namespace HollowZero.Daemons.Event
     public class ChoiceEventDaemon : EventDaemon
     {
         public ChoiceEventDaemon(Computer computer, string serviceName, OS os) : base(computer, serviceName, os) { }
+
+        protected override bool Registerable => true;
 
         [XMLStorage]
         public string CEventTitle = "Choice Event";

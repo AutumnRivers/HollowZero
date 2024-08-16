@@ -21,6 +21,8 @@ namespace HollowZero.Daemons
 
         public const int HSEP_HEIGHT = 4;
 
+        protected virtual bool Registerable => false;
+
         internal static void DrawCenteredText(Rectangle bounds, string text, SpriteFont font, int startingHeight, Color textColor = default)
         {
             textColor = textColor == default ? Color.White : textColor;

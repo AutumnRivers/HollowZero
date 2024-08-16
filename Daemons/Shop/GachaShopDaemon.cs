@@ -14,6 +14,8 @@ namespace HollowZero.Daemons.Shop
     {
         public GachaShopDaemon(Computer computer, string serviceName, OS os) : base(computer, serviceName, os) { }
 
+        protected override bool Registerable => true;
+
         public override string Identifier => "Gacha Shop";
 
         public const int DEFAULT_MOD_CHANCES = 3;

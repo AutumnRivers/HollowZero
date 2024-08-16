@@ -1,19 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 using Hacknet;
 
 using HarmonyLib;
 
 using MonoMod.Cil;
-using Mono.Cecil;
 using Mono.Cecil.Cil;
-using Pathfinder.Event.Gameplay;
 
-using System.Reflection;
+using Pathfinder.Event.Gameplay;
 
 namespace HollowZero
 {
@@ -41,13 +36,15 @@ namespace HollowZero
             c.EmitDelegate(int (float newRamCost) => (int)Math.Floor(newRamCost));
         }
 
+        public const float DEFAULT_FORKBOMB_SPEED = 150f;
+
         public static void AddToNewForkbombRamCost(OSUpdateEvent osu)
         {
             if (!Active && newRamCost > 0.0f) { newRamCost = 0.0f; }
             if (!Active) return;
 
             var gameTime = (float)osu.GameTime.ElapsedGameTime.TotalSeconds;
-            newRamCost += (gameTime * HollowZeroCore.ForkbombMultiplier) * 150f;
+            newRamCost += (gameTime * HollowZeroCore.ForkbombMultiplier) * DEFAULT_FORKBOMB_SPEED;
         }
     }
 }

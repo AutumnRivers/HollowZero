@@ -1,11 +1,11 @@
 ﻿using Hacknet;
+
 using Pathfinder.Port;
+
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace HollowZero
 {
@@ -133,7 +133,7 @@ namespace HollowZero
 
             public override void Discard()
             {
-                HollowZeroCore.ForkbombMultiplier = 1.0f;
+                HollowZeroCore.ForkbombMultiplier += 1.0f - multiplier;
                 base.Discard();
             }
 

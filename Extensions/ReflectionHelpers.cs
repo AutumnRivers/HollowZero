@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Reflection;
+using System.Linq.Expressions;
 
 namespace HollowZero
 {
@@ -36,6 +37,62 @@ namespace HollowZero
         {
             PropertyInfo prop = type.GetProperty(propName, staticFlags);
             prop.SetValue(null, newValue);
+        }
+
+        public static Delegate CreateDelegate(this MethodInfo methodInfo, object target)
+        {
+            Func<Type[], Type> getType;
+            var isAction = methodInfo.ReturnType.Equals((typeof(void)));
+            var types = methodInfo.GetParameters().Select(p => p.ParameterType);
+
+            if (isAction)
+            {
+                getType = Expression.GetActionType;
+            }
+            else
+            {
+                getType = Expression.GetFuncType;
+                types = types.Concat(new[] { methodInfo.ReturnType });
+            }
+
+            if (methodInfo.IsStatic)
+            {
+                return Delegate.CreateDelegate(getType(types.ToArray()), methodInfo);
+            }
+
+            return Delegate.CreateDelegate(getType(types.ToArray()), target, methodInfo.Name);
+        }
+
+        public static Type[] GetTypes(this MethodInfo methodInfo)
+        {
+            Func<Type[], Type> getType;
+            var types = methodInfo.GetParameters().Select(p => p.ParameterType);
+            var isAction = methodInfo.ReturnType.Equals((typeof(void)));
+
+            if (isAction)
+            {
+                getType = Expression.GetActionType;
+            }
+            else
+            {
+                getType = Expression.GetFuncType;
+                types = types.Concat(new[] { methodInfo.ReturnType });
+            }
+
+            return types.ToArray();
+        }
+
+        public static bool HasTypes(this MethodInfo methodInfo, params Type[] targetTypes)
+        {
+            var types = methodInfo.GetTypes();
+            bool hasAllTypes = true;
+            
+            foreach(var type in types)
+            {
+                hasAllTypes = targetTypes.Contains(type);
+            }
+
+            return hasAllTypes;
         }
     }
 }

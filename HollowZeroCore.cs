@@ -10,10 +10,12 @@ using BepInEx.Hacknet;
 using Hacknet;
 using Hacknet.Extensions;
 using Hacknet.Gui;
+using Hacknet.Effects;
 
 using Pathfinder.Daemon;
 
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
 using Newtonsoft.Json;
 
@@ -29,16 +31,13 @@ using Pathfinder.Event.Gameplay;
 using Pathfinder.Event;
 using Pathfinder.Command;
 
-using HarmonyLib;
-
 using Mono.Cecil;
-using Microsoft.Xna.Framework.Graphics;
-using Hacknet.Effects;
+using MonoMod.Utils;
+
 
 namespace HollowZero
 {
     [BepInDependency("autumnrivers.stuxnet")]
-    [BepInDependency("somemod.name", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInPlugin(ModGUID, ModName, ModVer)]
     public class HollowZeroCore : HacknetPlugin
     {
@@ -98,7 +97,6 @@ namespace HollowZero
 
         public static bool ShowInfecTracker = true;
 
-        //internal static List<string> loadedPacks = new List<string>();
         internal static Dictionary<string, string> knownPacks = new Dictionary<string, string>();
         internal static List<Assembly> knownPackAsms = new List<Assembly>();
         internal static Dictionary<string, string> loadedPacks = new Dictionary<string, string>();
@@ -145,16 +143,13 @@ namespace HollowZero
             HZLog("Adding daemons...");
             DaemonManager.RegisterDaemon<DialogueEventDaemon>();
             DaemonManager.RegisterDaemon<ChoiceEventDaemon>();
-            DaemonManager.RegisterDaemon<ChanceEventDaemon>();
             DaemonManager.RegisterDaemon<RestStopDaemon>();
             DaemonManager.RegisterDaemon<ProgramShopDaemon>();
             DaemonManager.RegisterDaemon<GachaShopDaemon>();
 
             HZLog("Adding commands...");
             // Quick Stats
-            CommandManager.RegisterCommand("infection", QuickStatCommands.ShowInfection);
-            CommandManager.RegisterCommand("malware", QuickStatCommands.ListMalware);
-            CommandManager.RegisterCommand("stats", QuickStatCommands.ListQuickStats);
+            RegisterCommands(typeof(QuickStatCommands), QuickStatCommands.Aliases, false);
 
             // Node Commands
             CommandManager.RegisterCommand("listnodes", NodeCommands.ListAvailableNodes);
@@ -164,20 +159,7 @@ namespace HollowZero
             CommandManager.RegisterCommand("inventory", InventoryCommands.ShowInventory);
 
             // Debug
-            if(OS.DEBUG_COMMANDS)
-            {
-                CommandManager.RegisterCommand("upinf", DebugCommands.IncreaseInfection, false, true);
-                CommandManager.RegisterCommand("downinf", DebugCommands.DecreaseInfection, false, true);
-                CommandManager.RegisterCommand("addmal", DebugCommands.AddRandomMalware, false, true);
-                CommandManager.RegisterCommand("clearmal", DebugCommands.ClearMalware, false, true);
-                CommandManager.RegisterCommand("addcreds", DebugCommands.AddCredits, false, true);
-                CommandManager.RegisterCommand("delcreds", DebugCommands.RemoveCredits, false, true);
-                CommandManager.RegisterCommand("addmod", DebugCommands.AddMod, false, true);
-                CommandManager.RegisterCommand("upmod", DebugCommands.UpgradeMod, false, true);
-                CommandManager.RegisterCommand("addcor", DebugCommands.AddCorruption, false, true);
-                CommandManager.RegisterCommand("timers", DebugCommands.ListTimers, false, true);
-                CommandManager.RegisterCommand("setfbs", DebugCommands.SetForkbombSpeed, false, true);
-            }
+            RegisterCommands(typeof(DebugCommands), DebugCommands.Aliases, true);
 
             HZLog("Registering game events...");
             EventManager<OSLoadedEvent>.AddHandler(delegate (OSLoadedEvent osl)
@@ -212,6 +194,30 @@ namespace HollowZero
             HollowTimer.ClearTimers();
 
             return base.Unload();
+        }
+
+        private static void RegisterCommands(Type rootType, Dictionary<MethodInfo, string> aliases, bool isDebug = false)
+        {
+            if (aliases == null) return;
+            foreach(var mthd in rootType.GetMethods())
+            {
+                foreach(var type in mthd.GetTypes())
+                {
+                    Console.WriteLine($"{mthd.Name} : {type.Name}");
+                }
+
+                if (!mthd.HasTypes(typeof(OS), typeof(string[]))) return;
+                Action<OS, string[]> cmd = mthd.CreateDelegate<Action<OS, string[]>>();
+                string alias = aliases[mthd];
+
+                if(!isDebug)
+                {
+                    CommandManager.RegisterCommand(alias, cmd);
+                } else if(isDebug && OS.DEBUG_COMMANDS)
+                {
+                    CommandManager.RegisterCommand(alias, cmd, false, true);
+                }
+            }
         }
 
         private void HZLog(string message)

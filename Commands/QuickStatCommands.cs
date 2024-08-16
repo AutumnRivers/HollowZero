@@ -1,4 +1,6 @@
-﻿using System.Text;
+﻿using System.Collections.Generic;
+using System.Reflection;
+using System.Text;
 using Hacknet;
 
 namespace HollowZero.Commands
@@ -6,6 +8,18 @@ namespace HollowZero.Commands
     public class QuickStatCommands
     {
         public const string TERM_SEPERATOR = "- - - - - - - - - -";
+
+        public static Dictionary<MethodInfo, string> Aliases = new Dictionary<MethodInfo, string>()
+        {
+            { FindMethod("ShowInfection"), "infection" },
+            { FindMethod("ListMalware"), "malware" },
+            { FindMethod("ListQuickStats"), "stats" }
+        };
+
+        private static MethodInfo FindMethod(string name)
+        {
+            return typeof(QuickStatCommands).GetMethod(name);
+        }
 
         public static void ShowInfection(OS os, string[] args)
         {

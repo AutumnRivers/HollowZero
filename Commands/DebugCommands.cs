@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using System.Text;
 using Hacknet;
 
@@ -6,6 +8,26 @@ namespace HollowZero.Commands
 {
     public class DebugCommands
     {
+        public static Dictionary<MethodInfo, string> Aliases = new Dictionary<MethodInfo, string>()
+        {
+            { FindMethod("IncreaseInfection"), "upinf" },
+            { FindMethod("DecreaseInfection"), "downinf" },
+            { FindMethod("AddRandomMalware"), "addmal" },
+            { FindMethod("ClearMalware"), "clearmal" },
+            { FindMethod("AddCredits"), "addcreds" },
+            { FindMethod("RemoveCredits"), "takecreds" },
+            { FindMethod("AddMod"), "addmod" },
+            { FindMethod("UpgradeMod"), "upmod" },
+            { FindMethod("AddCorruption"), "addcorr" },
+            { FindMethod("ListTimers"), "timers" },
+            { FindMethod("SetForkbombSpeed"), "setfbs" }
+        };
+
+        private static MethodInfo FindMethod(string name)
+        {
+            return typeof(DebugCommands).GetMethod(name);
+        }
+
         public static void IncreaseInfection(OS os, string[] args)
         {
             if(!OS.DEBUG_COMMANDS)

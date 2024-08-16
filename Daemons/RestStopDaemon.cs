@@ -19,6 +19,8 @@ namespace HollowZero.Daemons
             Backdrop.FallRate = 0.3f;
         }
 
+        protected override bool Registerable => true;
+
         private readonly RaindropsEffect Backdrop = new RaindropsEffect();
         private readonly int RestButtonID = PFButton.GetNextID();
 
