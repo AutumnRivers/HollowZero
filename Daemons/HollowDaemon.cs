@@ -117,6 +117,8 @@ namespace HollowZero.Daemons
 
         public Action OnPressed;
 
+        public bool IsAction => false;
+
         public void DoButton()
         {
             if (Disabled) Color = Utils.SlightlyDarkGray;
@@ -130,7 +132,10 @@ namespace HollowZero.Daemons
                     return;
                 }
 
-                HollowDaemon.DoMalwarePowerAction();
+                if(IsAction)
+                {
+                    HollowDaemon.DoMalwarePowerAction();
+                }
                 OnPressed.Invoke();
             }
         }

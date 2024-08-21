@@ -54,7 +54,6 @@ namespace HollowZero.Daemons.Shop
                     ProgramID = prog.Value,
                     FileContent = PortExploits.crackExeData[prog.Value]
                 };
-                Console.WriteLine(baseGameProgram);
                 BaseGamePrograms.Add(baseGameProgram);
             }
         }

@@ -198,9 +198,11 @@ namespace HollowZero.Commands
         {
             foreach(var timer in HollowTimer.timers)
             {
-                bool active = HollowTimer.ActiveTimerIDs.Contains(timer.Item1);
-                os.write($"Timer ID: {timer.Item1}, {timer.Item2.ToString("n2")}s left. " +
+                bool active = timer.IsActive;
+#pragma warning disable IDE0071
+                os.write($"Timer ID: {timer.ID}, {timer.SecondsLeft.ToString("n2")}s left. " +
                     "(" + (active ? "ACTIVE" : "INACTIVE") + ")");
+#pragma warning restore IDE0071
             }
         }
 

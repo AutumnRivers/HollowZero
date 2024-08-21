@@ -3,138 +3,195 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using static HollowZero.HollowLogger;
+
 namespace HollowZero
 {
-    internal class HollowTimer
+    public class HollowTimerBase
     {
-        internal static List<Tuple<string, float, Action>> timers = new List<Tuple<string, float, Action>>();
-        private static List<Tuple<string, float, Action>> timerRemovalQueue = new List<Tuple<string, float, Action>>();
-        private static List<Tuple<string, float, Action>> timerAdditionQueue = new List<Tuple<string, float, Action>>();
-        private static Dictionary<Tuple<string, float, Action>, Tuple<string, float, Action>> timerChangeQueue =
-            new Dictionary<Tuple<string, float, Action>, Tuple<string, float, Action>>();
+        public HollowTimerBase(string id, float seconds, Action actionToRun)
+        {
+            ID = id;
+            BaseSeconds = seconds;
+            SecondsLeft = seconds;
+            RunOnTimeOut = actionToRun;
+        }
 
-        public static readonly List<string> ActiveTimerIDs = new List<string>();
-        public static readonly Dictionary<string, float> RepeatTimers = new Dictionary<string, float>();
+        public HollowTimerBase(string id, float seconds, Action actionToRun, bool repeating)
+        {
+            ID = id;
+            BaseSeconds = seconds;
+            SecondsLeft = seconds;
+            RunOnTimeOut = actionToRun;
+            IsRepeating = repeating;
+        }
+
+        public string ID { get; set; }
+        public float SecondsLeft { get; set; }
+        public Action RunOnTimeOut { get; set; }
+        public bool IsRepeating { get; set; } = false;
+
+        public bool IsActive { get; set; } = true;
+        private float BaseSeconds { get; set; }
+
+        public void Restart()
+        {
+            SecondsLeft = BaseSeconds;
+        }
+
+        public void ChangeSeconds(float newSeconds)
+        {
+            SecondsLeft = newSeconds;
+            BaseSeconds = newSeconds;
+        }
+    }
+
+    public class HollowTimerChangeOrder
+    {
+        public HollowTimerChangeOrder(string id)
+        {
+            TimerID = id;
+        }
+
+        public HollowTimerChangeOrder(string id, float newSeconds)
+        {
+            TimerID = id;
+            NewSeconds = newSeconds;
+        }
+
+        public HollowTimerChangeOrder(string id, Action newAction)
+        {
+            TimerID = id;
+            NewAction = newAction;
+        }
+
+        public HollowTimerChangeOrder(string id, float newSeconds, Action newAction)
+        {
+            TimerID = id;
+            NewSeconds = newSeconds;
+            NewAction = newAction;
+        }
+
+        public HollowTimerChangeOrder(string id, bool needsRemoval)
+        {
+            TimerID = id;
+            NeedsRemoval = needsRemoval;
+        }
+
+        public HollowTimerChangeOrder(int index, bool needsRemoval)
+        {
+            TimerIndex = index;
+            NeedsRemoval = needsRemoval;
+        }
+
+        public string TimerID;
+        public int TimerIndex;
+        public float NewSeconds;
+        public Action NewAction;
+        public bool NeedsRemoval = false;
+    }
+
+    public class HollowTimer
+    {
+        public static readonly List<HollowTimerBase> timers = new();
+        public static readonly List<HollowTimerChangeOrder> changeOrders = new();
+        public static readonly List<HollowTimerBase> timersQueue = new();
+
+        private static readonly HashSet<string> knownIDs = new();
 
         internal static void DecreaseTimers(OSUpdateEvent updateEvent)
         {
             float seconds = (float)updateEvent.GameTime.ElapsedGameTime.TotalSeconds;
 
-            foreach(var timer in timers)
+            foreach(var timer in timersQueue)
             {
-                int index = timers.IndexOf(timer);
-                if(timer.Item2 - seconds <= 0)
-                {
-                    timer.Item3.Invoke();
-
-                    if(RepeatTimers.ContainsKey(timer.Item1))
-                    {
-                        var newTimer = Tuple.Create(timer.Item1, RepeatTimers[timer.Item1], timer.Item3);
-                        ChangeTimer(timer.Item1, newTimer.Item2, timer.Item3);
-                    } else
-                    {
-                        Console.WriteLine($"Removing timer {timer.Item1}...");
-                        RemoveTimer(timer.Item1);
-                    }
-                    continue;
-                } else
-                {
-                    ChangeTimer(timer.Item1, timer.Item2 - seconds);
-                    continue;
-                }
-            }
-
-            List<Tuple<string, float, Action>> duplicateTimers = new List<Tuple<string, float, Action>>();
-            foreach(var timer in timers)
-            {
-                var amountOfIdenticalTimers = timers.FindAll(t => t.Item1 == timer.Item1).Count;
-                var amountOfIdenticalTimersFound = duplicateTimers.FindAll(t => t.Item1 == timer.Item1).Count;
-                if(amountOfIdenticalTimers > amountOfIdenticalTimersFound + 1)
-                {
-                    duplicateTimers.Add(timer);
-                }
-            }
-
-            foreach(var timer in duplicateTimers)
-            {
-                timerRemovalQueue.Add(timer);
-            }
-
-            foreach(var timer in timerRemovalQueue)
-            {
-                timers.Remove(timer);
-                ActiveTimerIDs.Remove(timer.Item1);
-            }
-
-            foreach(var timer in timerAdditionQueue)
-            {
+                if (timers.Contains(timer)) continue;
                 timers.Add(timer);
             }
 
-            foreach(var change in timerChangeQueue)
+            foreach(var timer in timers)
             {
-                int index = timers.IndexOf(change.Key);
-                timers[index] = change.Value;
+                if (!timer.IsActive) continue;
+                if(timer.SecondsLeft - seconds <= 0)
+                {
+                    timer.RunOnTimeOut();
+                    if (!timer.IsRepeating)
+                    {
+                        var order = new HollowTimerChangeOrder(timer.ID, true);
+                        continue;
+                    }
+                    timer.Restart();
+                } else
+                {
+                    var order = new HollowTimerChangeOrder(timer.ID, timer.SecondsLeft - seconds);
+                    changeOrders.Add(order);
+                }
             }
 
-            timerRemovalQueue.Clear();
-            timerAdditionQueue.Clear();
-            timerChangeQueue.Clear();
+            foreach(var order in changeOrders)
+            {
+                if(!timers.TryFind(t => t.ID == order.TimerID, out var timer))
+                {
+                    LogWarning($"[Timer Change Order] Couldn't find timer with ID of {order.TimerID} -- skipping.");
+                    continue;
+                }
+                int index = timers.IndexOf(timer);
+
+                if(order.NeedsRemoval)
+                {
+                    timers.Remove(timer);
+                    continue;
+                }
+
+                if(order.NewSeconds != default)
+                {
+                    timers[index].ChangeSeconds(order.NewSeconds);
+                }
+
+                if(order.NewAction != null)
+                {
+                    timers[index].RunOnTimeOut = order.NewAction;
+                }
+            }
         }
 
         public static void AddTimer(string id, float timeInSeconds, Action action)
         {
-            if (ActiveTimerIDs.Contains(id)) return;
-            ActiveTimerIDs.Add(id);
-            timerAdditionQueue.Add(Tuple.Create(id, timeInSeconds, action));
+            if (!knownIDs.Add(id)) return;
+            if (timers.Exists(t => t.ID == id) || timersQueue.Exists(t => t.ID == id)) return;
+            var timer = new HollowTimerBase(id, timeInSeconds, action);
+            timersQueue.Add(timer);
+            knownIDs.Remove(id);
         }
 
         public static void AddTimer(string id, float timeInSeconds, Action action, bool repeat)
         {
-            AddTimer(id, timeInSeconds, action);
-            if (!repeat) return;
-            if (RepeatTimers.ContainsKey(id)) return;
-            RepeatTimers.Add(id, timeInSeconds);
+            if (!knownIDs.Add(id)) return;
+            if (timers.Exists(t => t.ID == id) || timersQueue.Exists(t => t.ID == id)) return;
+            var timer = new HollowTimerBase(id, timeInSeconds, action, repeat);
+            timersQueue.Add(timer);
+            knownIDs.Remove(id);
         }
 
         public static void RemoveTimer(string id)
         {
-            if(TryFindTimer(id, out var timer))
-            {
-                timerRemovalQueue.Add(timer);
-                if(RepeatTimers.ContainsKey(id))
-                {
-                    RepeatTimers.Remove(id);
-                }
-            }
+            var order = new HollowTimerChangeOrder(id, true);
+            changeOrders.Add(order);
         }
 
         public static void ChangeTimer(string id, float timeInSeconds = 0.0f, Action action = null)
         {
-            if(TryFindTimer(id, out var timer))
-            {
-                float time = timeInSeconds == 0.0f ? timer.Item2 : timeInSeconds;
-                Action a = action ?? timer.Item3;
-
-                var newTimer = Tuple.Create(id, time, a);
-
-                if(timerChangeQueue.ContainsKey(timer))
-                {
-                    timerChangeQueue[timer] = newTimer;
-                } else
-                {
-                    timerChangeQueue.Add(timer, newTimer);
-                }
-            }
+            var order = new HollowTimerChangeOrder(id, timeInSeconds, action);
+            changeOrders.Add(order);
         }
 
-        private static bool TryFindTimer(string id, out Tuple<string, float, Action> timer)
+        private static bool TryFindTimer(string id, out HollowTimerBase timer)
         {
             timer = null;
-
-            var fTimer = timers.FirstOrDefault(t => t.Item1 == id);
-            if (fTimer == null) return false;
-
+            if(!timers.TryFind(t => t.ID == id, out var fTimer))
+            {
+                return false;
+            }
             timer = fTimer;
             return true;
         }
@@ -142,10 +199,8 @@ namespace HollowZero
         internal static void ClearTimers()
         {
             timers.Clear();
-            timerAdditionQueue.Clear();
-            timerChangeQueue.Clear();
-            ActiveTimerIDs.Clear();
-            timerRemovalQueue.Clear();
+            changeOrders.Clear();
+            timersQueue.Clear();
         }
     }
 }

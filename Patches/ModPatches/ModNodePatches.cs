@@ -164,7 +164,6 @@ namespace HollowZero
                 trace.active = true;
                 os.warningFlash();
                 trace.target = ((os.connectedComp == null) ? os.thisComputer : os.connectedComp);
-                Console.WriteLine("Warning flash");
             }
         }
 

@@ -16,6 +16,8 @@ using Pathfinder.Util;
 
 using BepInEx;
 
+using static HollowZero.HollowLogger;
+
 namespace HollowZero.Daemons.Event
 {
     public class ChoiceEventDaemon : EventDaemon
@@ -164,7 +166,7 @@ namespace HollowZero.Daemons.Event
             filename = filename == "" ? ExtensionLoader.ActiveExtensionInfo.FolderPath + DEFAULT_EVENTS_FILE_PATH : filename;
             if (!File.Exists(filename)) { return; }
 
-            Console.WriteLine(HollowZeroCore.HZLOG_PREFIX + "[Rewrite] Reading choice events...");
+            LogDebug(HollowZeroCore.HZLOG_PREFIX + "[Rewrite] Reading choice events...");
 
             FileStream eventsFileStream = File.OpenRead(filename);
             XmlReader xml = XmlReader.Create(eventsFileStream);
@@ -207,7 +209,7 @@ namespace HollowZero.Daemons.Event
                     cev.Choices.Add(ReadChoiceDocument(choice, ref cev));
                 }
 
-                Console.WriteLine(HollowZeroCore.HZLOG_PREFIX + "" +
+                LogDebug(HollowZeroCore.HZLOG_PREFIX + "" +
                     $"[Rewrite] Registering choice event {cev.Title}...");
                 PossibleEvents.Add(cev);
             }

@@ -33,7 +33,9 @@ using Pathfinder.Command;
 
 using Mono.Cecil;
 using MonoMod.Utils;
+using BepInEx.Logging;
 
+using static HollowZero.HollowLogger;
 
 namespace HollowZero
 {
@@ -114,6 +116,8 @@ namespace HollowZero
 
         public override bool Load()
         {
+            HollowLogSource = Log;
+
             CollectedMalware = new List<Malware>();
             CollectedMods = new List<Modification>();
             CollectedCorruptions = new List<Corruption>();
@@ -161,7 +165,7 @@ namespace HollowZero
             // Debug
             RegisterCommands(typeof(DebugCommands), DebugCommands.Aliases, true);
 
-            HZLog("Registering game events...");
+            HZLog("Registering events...");
             EventManager<OSLoadedEvent>.AddHandler(delegate (OSLoadedEvent osl)
             {
                 ExtensionInit(osl);
@@ -169,17 +173,8 @@ namespace HollowZero
             EventManager<OSUpdateEvent>.AddHandler(delegate (OSUpdateEvent osu)
             {
                 MalwareEffects.ApplyPersistentMalwareEffects(osu);
-            });
-            EventManager<OSUpdateEvent>.AddHandler(delegate (OSUpdateEvent osu)
-            {
                 HollowTimer.DecreaseTimers(osu);
-            });
-            EventManager<OSUpdateEvent>.AddHandler(delegate (OSUpdateEvent osu)
-            {
                 RunPersistentModsAndCorruptions(osu);
-            });
-            EventManager<OSUpdateEvent>.AddHandler(delegate (OSUpdateEvent osu)
-            {
                 ForkbombSpeedFix.AddToNewForkbombRamCost(osu);
             });
             return true;
@@ -201,11 +196,6 @@ namespace HollowZero
             if (aliases == null) return;
             foreach(var mthd in rootType.GetMethods())
             {
-                foreach(var type in mthd.GetTypes())
-                {
-                    Console.WriteLine($"{mthd.Name} : {type.Name}");
-                }
-
                 if (!mthd.HasTypes(typeof(OS), typeof(string[]))) return;
                 Action<OS, string[]> cmd = mthd.CreateDelegate<Action<OS, string[]>>();
                 string alias = aliases[mthd];
@@ -222,7 +212,7 @@ namespace HollowZero
 
         private void HZLog(string message)
         {
-            Log.LogDebug(HZLOG_PREFIX + message);
+            LogDebug(HZLOG_PREFIX + message);
         }
 
         public static string GetExtensionFilePath(string relativePath)
@@ -315,6 +305,8 @@ namespace HollowZero
         {
             string asmName = hollowPackAsm.GetName().Name;
             var registerClass = hollowPackAsm.GetTypes().FirstOrDefault(t => t.BaseType.Name == "HollowPack");
+            packID = null;
+            packAuthor = null;
             if (registerClass == default)
             {
                 FailLog(asmName, RegisterFailures.NOT_HOLLOW);
@@ -353,7 +345,7 @@ namespace HollowZero
                         break;
                 }
 
-                Console.WriteLine(HZLOG_PREFIX + $"Failed to get metadata of Hollow Pack {title} with reason: {reason}.");
+                LogError(HZLOG_PREFIX + $"Failed to get metadata of Hollow Pack {title} with reason: {reason}.");
             }
         }
 
@@ -361,6 +353,8 @@ namespace HollowZero
         {
             string asmName = hollowPackAsm.GetName().Name;
             var registerClass = hollowPackAsm.GetTypes().FirstOrDefault(t => t.BaseType.Name == "HollowPack");
+            packID = null;
+            packAuthor = null;
             if (registerClass == default)
             {
                 FailLog(asmName, RegisterFailures.NOT_HOLLOW);
@@ -434,7 +428,7 @@ namespace HollowZero
                         break;
                 }
 
-                Console.WriteLine(HZLOG_PREFIX + $"Failed to load Hollow Pack {title} with reason: {reason}.");
+                LogError(HZLOG_PREFIX + $"Failed to load Hollow Pack {title} with reason: {reason}.");
             }
         }
 
@@ -696,6 +690,17 @@ namespace HollowZero
         }
     }
 
+    internal static class HollowLogger
+    {
+        internal static ManualLogSource HollowLogSource;
+
+        internal static void LogImportant(string msg) => HollowLogSource.Log(LogLevel.Message, msg);
+        internal static void LogError(string msg) => HollowLogSource.LogError(msg);
+        internal static void LogDebug(string msg) => HollowLogSource.LogDebug(msg);
+        internal static void LogWarning(string msg) => HollowLogSource.LogWarning(msg);
+        internal static void LogCustom(LogLevel level, string msg) => HollowLogSource.Log(level, msg);
+    }
+
     public static class PlayerManager
     {
         public static void AddProgramToPlayerPC(string programName, string programContent)
@@ -838,7 +843,7 @@ namespace HollowZero
                 return;
             }
 
-            Console.WriteLine(HollowZeroCore.HZLOG_PREFIX +
+            LogError(HollowZeroCore.HZLOG_PREFIX +
                 $"Couldn't determine effect for modification with ID of {ID}");
         }
     }

@@ -1,18 +1,20 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 using Hacknet;
 using Hacknet.Effects;
 using Hacknet.Gui;
 using Hacknet.UIUtils;
+
 using HarmonyLib;
+
 using HollowZero.Daemons;
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+
 using Pathfinder.GUI;
+
+using static HollowZero.HollowLogger;
 
 namespace HollowZero.Patches
 {
@@ -202,8 +204,8 @@ namespace HollowZero.Patches
                 modPanel.Draw(drawModList, GuiData.spriteBatch, panel);
             } catch(Exception e)
             {
-                Console.WriteLine("<!> Oops. Something BAD happened...");
-                Console.WriteLine(e);
+                LogError("<!> Oops. Something BAD happened...");
+                LogError(e.ToString());
             }
         }
 
@@ -271,8 +273,8 @@ namespace HollowZero.Patches
                 corPanel.Draw(drawCorruptionList, GuiData.spriteBatch, panel);
             } catch(Exception e)
             {
-                Console.WriteLine("<!> Oops. Something BAD happened...");
-                Console.WriteLine(e);
+                LogError("<!> Oops. Something BAD happened...");
+                LogError(e.ToString());
             }
         }
 

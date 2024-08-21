@@ -1,11 +1,13 @@
 ﻿using Hacknet;
+
 using HollowZero.Patches;
+
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
+using static HollowZero.HollowLogger;
 
 namespace HollowZero
 {
@@ -113,7 +115,7 @@ namespace HollowZero
                             CommandDisabler.corruptedCommands.Add(cmd);
                             if (OS.DEBUG_COMMANDS)
                             {
-                                Console.WriteLine($"{HollowZeroCore.HZLOG_PREFIX}" +
+                                LogDebug($"{HollowZeroCore.HZLOG_PREFIX}" +
                                     $"[CMD Corruptor] Disabling command {cmd}");
                             }
                             OS.currentInstance.terminal.writeLine($"<X> Command '{cmd}' disabled due to system instability!");
@@ -298,7 +300,6 @@ namespace HollowZero
                     }
 
                     int chance = random.Next(0, 100);
-                    Console.WriteLine(chance);
                     if(chance < PowerLevels[0])
                     {
                         OS.currentInstance.terminal.writeLine("<!> HARDWARE FAILURE IMMINENT <!>");
