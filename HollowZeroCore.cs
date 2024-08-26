@@ -145,11 +145,12 @@ namespace HollowZero
             //HZLog("Adding actions...");
 
             HZLog("Adding daemons...");
-            DaemonManager.RegisterDaemon<DialogueEventDaemon>();
+            /*DaemonManager.RegisterDaemon<DialogueEventDaemon>();
             DaemonManager.RegisterDaemon<ChoiceEventDaemon>();
             DaemonManager.RegisterDaemon<RestStopDaemon>();
             DaemonManager.RegisterDaemon<ProgramShopDaemon>();
-            DaemonManager.RegisterDaemon<GachaShopDaemon>();
+            DaemonManager.RegisterDaemon<GachaShopDaemon>();*/
+            RegisterDaemons();
 
             HZLog("Adding commands...");
             // Quick Stats
@@ -206,6 +207,43 @@ namespace HollowZero
                 } else if(isDebug && OS.DEBUG_COMMANDS)
                 {
                     CommandManager.RegisterCommand(alias, cmd, false, true);
+                }
+            }
+        }
+
+        private static void RegisterDaemons()
+        {
+            var hollowDaemons = typeof(HollowZeroCore).Assembly.GetTypes().Where(t => t.IsSubclassOf(typeof(HollowDaemon)));
+            List<Type> registerableDaemons = new();
+
+            foreach(var daemon in hollowDaemons)
+            {
+                try
+                {
+                    var register = daemon.GetProperty("Registerable", BindingFlags.Static | BindingFlags.Public);
+                    if (register == null) continue;
+                    if ((bool)register.GetValue(null))
+                    {
+                        LogDebug($"Registering Hollow Daemon {daemon.Name}...");
+                        registerableDaemons.Add(daemon);
+                    }
+                } catch(Exception e)
+                {
+                    LogError($"Error while attempting to convert {daemon.Name} to Hollow Daemon, skipping:");
+                    LogError(e.ToString());
+                }
+            }
+
+            foreach(var daemon in registerableDaemons)
+            {
+                try
+                {
+                    DaemonManager.RegisterDaemon(daemon);
+                    LogDebug($"Successfully registered Hollow Daemon {daemon.Name} with Pathfinder");
+                } catch(Exception e)
+                {
+                    LogError($"Error while attempting to register Hollow Daemon {daemon.Name} with Pathfinder:");
+                    LogError(e.ToString());
                 }
             }
         }
@@ -615,7 +653,10 @@ namespace HollowZero
                 }
             }
 
-            malware.RemoveAction(malware.PowerLevel, affectedComps);
+            if(malware.RemoveAction != null)
+            {
+                malware.RemoveAction(malware.PowerLevel, affectedComps);
+            }
             CollectedMalware.Remove(malware);
         }
 
@@ -673,6 +714,13 @@ namespace HollowZero
             {
                 corr.CorruptionEffect();
             }
+        }
+
+        public static void RemoveCorruption(Corruption corruption)
+        {
+            if (!CollectedCorruptions.Any(c => c.ID == corruption?.ID)) return;
+
+            corruption.Discard();
         }
 
         public static void UpgradeCorruption(Corruption corruption)

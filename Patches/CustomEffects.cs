@@ -110,7 +110,7 @@ namespace HollowZero
                 if (CurrentMalware == null) return;
                 BeginFade = true;   
             };
-            HollowTimer.AddTimer("malware_popup_fade", 3.5f, fadeAction);
+            HollowTimer.AddTimer($"malware_popup_fade_{CurrentMalware.DisplayName}", 3.5f, fadeAction);
             if (!BeginFade) return;
 
             if (TextOpacity > 0f)

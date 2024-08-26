@@ -40,6 +40,8 @@ namespace HollowZero.Daemons.Shop
 
         private readonly int[] IgnorePorts = { 3724, 1, 4, 8, 15, 17, 31, 9418, 40, 3659 };
 
+        public static new bool Registerable => false;
+
         public override void initFiles()
         {
             base.initFiles();

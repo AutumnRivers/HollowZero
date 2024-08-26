@@ -44,6 +44,12 @@ namespace HollowZero
             SecondsLeft = newSeconds;
             BaseSeconds = newSeconds;
         }
+
+        public void ChangeSeconds(float newSeconds, bool alsoChangeBase)
+        {
+            SecondsLeft = newSeconds;
+            if (alsoChangeBase) BaseSeconds = newSeconds;
+        }
     }
 
     public class HollowTimerChangeOrder
@@ -57,6 +63,13 @@ namespace HollowZero
         {
             TimerID = id;
             NewSeconds = newSeconds;
+        }
+
+        public HollowTimerChangeOrder(string id, float newSeconds, bool alsoChangeBase)
+        {
+            TimerID = id;
+            NewSeconds = newSeconds;
+            ChangeBaseSeconds = alsoChangeBase;
         }
 
         public HollowTimerChangeOrder(string id, Action newAction)
@@ -85,16 +98,18 @@ namespace HollowZero
         }
 
         public string TimerID;
-        public int TimerIndex;
+        public int TimerIndex = -1;
         public float NewSeconds;
         public Action NewAction;
         public bool NeedsRemoval = false;
+        public bool ChangeBaseSeconds = false;
     }
 
     public class HollowTimer
     {
-        public static readonly List<HollowTimerBase> timers = new();
-        public static readonly List<HollowTimerChangeOrder> changeOrders = new();
+        //public static readonly List<HollowTimerBase> timers = new();
+        public static readonly UniqueTimersCollection timers = new();
+        public static List<HollowTimerChangeOrder> changeOrders = new();
         public static readonly List<HollowTimerBase> timersQueue = new();
 
         private static readonly HashSet<string> knownIDs = new();
@@ -105,9 +120,9 @@ namespace HollowZero
 
             foreach(var timer in timersQueue)
             {
-                if (timers.Contains(timer)) continue;
-                timers.Add(timer);
+                timers.AddTimer(timer);
             }
+            timersQueue.Clear();
 
             foreach(var timer in timers)
             {
@@ -115,12 +130,17 @@ namespace HollowZero
                 if(timer.SecondsLeft - seconds <= 0)
                 {
                     timer.RunOnTimeOut();
+                    timer.IsActive = false;
                     if (!timer.IsRepeating)
                     {
                         var order = new HollowTimerChangeOrder(timer.ID, true);
+                        changeOrders.Add(order);
                         continue;
+                    } else
+                    {
+                        timer.Restart();
+                        timer.IsActive = true;
                     }
-                    timer.Restart();
                 } else
                 {
                     var order = new HollowTimerChangeOrder(timer.ID, timer.SecondsLeft - seconds);
@@ -137,7 +157,7 @@ namespace HollowZero
                 }
                 int index = timers.IndexOf(timer);
 
-                if(order.NeedsRemoval)
+                if (order.NeedsRemoval)
                 {
                     timers.Remove(timer);
                     continue;
@@ -145,7 +165,7 @@ namespace HollowZero
 
                 if(order.NewSeconds != default)
                 {
-                    timers[index].ChangeSeconds(order.NewSeconds);
+                    timers[index].ChangeSeconds(order.NewSeconds, false);
                 }
 
                 if(order.NewAction != null)
@@ -153,6 +173,7 @@ namespace HollowZero
                     timers[index].RunOnTimeOut = order.NewAction;
                 }
             }
+            changeOrders.Clear();
         }
 
         public static void AddTimer(string id, float timeInSeconds, Action action)
@@ -201,6 +222,41 @@ namespace HollowZero
             timers.Clear();
             changeOrders.Clear();
             timersQueue.Clear();
+        }
+    }
+
+    public class UniqueTimersCollection : List<HollowTimerBase>
+    {
+        private bool Debug => Hacknet.OS.DEBUG_COMMANDS;
+
+        public List<HollowTimerBase> SimpleList;
+
+        public UniqueTimersCollection()
+        {
+            SimpleList = this;
+        }
+
+        public void AddTimer(HollowTimerBase timer)
+        {
+            if(Debug)
+            {
+                LogDebug($"[Hollow Timer] Adding timer with ID of {timer.ID}...");
+            }
+            
+            Add(timer);
+        }
+
+        public HollowTimerBase GetTimer(string id)
+        {
+            if (!this.Any(t => t.ID == id)) return null;
+            return this.First(t => t.ID == id);
+        }
+
+        public void RemoveTimer(string id)
+        {
+            if (!this.Any(t => t.ID == id)) return;
+            var timer = this.First(t => t.ID == id);
+            this.Remove(timer);
         }
     }
 }

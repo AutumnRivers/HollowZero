@@ -14,7 +14,7 @@ namespace HollowZero.Daemons.Shop
     {
         public GachaShopDaemon(Computer computer, string serviceName, OS os) : base(computer, serviceName, os) { }
 
-        protected override bool Registerable => true;
+        public static new bool Registerable => true;
 
         public override string Identifier => "Gacha Shop";
 
@@ -26,6 +26,8 @@ namespace HollowZero.Daemons.Shop
 
         public int ModButtonID;
         public int UpgradeButtonID;
+
+        public int Cost = 500;
 
         public override void initFiles()
         {
@@ -60,7 +62,7 @@ namespace HollowZero.Daemons.Shop
         {
             base.draw(bounds, sb);
 
-            PatternDrawer.draw(bounds, 0.5f, Color.Black * 0.5f, OS.currentInstance.brightUnlockedColor * 0.12f, GuiData.spriteBatch,
+            PatternDrawer.draw(bounds, 0.5f, Color.Black * 0.5f, OS.currentInstance.unlockedColor * 0.12f, GuiData.spriteBatch,
                 PatternDrawer.wipTile);
 
             int titleHeight = GetStringHeight(GuiData.titlefont, "GREAT GACHA!");
@@ -74,8 +76,13 @@ namespace HollowZero.Daemons.Shop
                 "Get Modification", Color.White);
             if(RemainingModifications > 0)
             {
-                modButton.Text = $"Get Random Modification!\n(Remaining Chances: {RemainingModifications}";
+                modButton.Text = $"Get Random Modification! (${Cost})\n(Remaining Chances: {RemainingModifications}";
                 modButton.Color = OS.currentInstance.brightUnlockedColor;
+                if(HollowZeroCore.PlayerCredits < Cost)
+                {
+                    modButton.Disabled = true;
+                    modButton.DisabledMessage = "<!> You don't have enough credits for that!";
+                }
                 modButton.OnPressed = delegate ()
                 {
                     switch(GetModification(out var mod, out var cor))
@@ -102,6 +109,7 @@ namespace HollowZero.Daemons.Shop
                             }
                             break;
                     }
+                    Cost += (int)Math.Floor(Cost / 4f);
                     RemainingModifications--;
                 };
             } else
@@ -114,10 +122,15 @@ namespace HollowZero.Daemons.Shop
 
             var upgradeButton = new HollowButton(UpgradeButtonID, bounds.Center.X - (bounds.Width / 4),
                 bounds.Center.Y + (BUTTON_HEIGHT / 2) + 25, bounds.Width / 2, BUTTON_HEIGHT,
-                "Get Mod. Upgrade", Color.White);
+                $"Get Mod. Upgrade (${(int)(Cost * 1.5f)})", Color.White);
             if(RemainingUpgrades > 0)
             {
-                if(HollowZeroCore.CollectedMods.Count(m => !m.Upgraded) <= 0)
+                if (HollowZeroCore.PlayerCredits < (int)(Cost * 1.5f))
+                {
+                    upgradeButton.Disabled = true;
+                    upgradeButton.DisabledMessage = "<!> You don't have enough credits for that!";
+                }
+                if (HollowZeroCore.CollectedMods.Count(m => !m.Upgraded) <= 0)
                 {
                     upgradeButton.Disabled = true;
                     upgradeButton.DisabledMessage = "<...> There's no more mods for you to upgrade!";

@@ -21,7 +21,7 @@ namespace HollowZero.Daemons
 
         public const int HSEP_HEIGHT = 4;
 
-        protected virtual bool Registerable => false;
+        public static bool Registerable => false;
 
         internal static void DrawCenteredText(Rectangle bounds, string text, SpriteFont font, int startingHeight, Color textColor = default)
         {
@@ -32,6 +32,18 @@ namespace HollowZero.Daemons
                 (float)(startingHeight) - textVector.Y / 2f);
 
             GuiData.spriteBatch.DrawString(font, text, textPosition, textColor);
+        }
+
+        internal static void DrawCenteredFlickeringText(Rectangle bounds, string text, SpriteFont font, int startingHeight, Color textColor = default)
+        {
+            textColor = textColor == default ? Color.White : textColor;
+            Vector2 textVector = font.MeasureString(text);
+            Vector2 textPosition = new Vector2(
+                (float)(bounds.X + bounds.Width / 2) - textVector.X / 2f,
+                (float)(startingHeight) - textVector.Y / 2f);
+
+            GuiData.spriteBatch.DrawString(font, Utils.FlipRandomChars(text, 0.017999999225139618), textPosition, textColor);
+            GuiData.spriteBatch.DrawString(font, Utils.FlipRandomChars(text, 0.0040000001899898052), textPosition, textColor * 0.5f);
         }
 
         internal static void DrawCenteredScaleText(Rectangle bounds, string text, SpriteFont font, int startingHeight, Color textColor = default,

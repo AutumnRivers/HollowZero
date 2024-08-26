@@ -20,7 +20,7 @@ namespace HollowZero.Daemons.Shop
     {
         public ProgramShopDaemon(Computer computer, string serviceName, OS os) : base(computer, serviceName, os) { }
 
-        protected override bool Registerable => true;
+        public static new bool Registerable => true;
 
         public override string Identifier => "Program Shop";
 

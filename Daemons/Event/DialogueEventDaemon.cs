@@ -13,7 +13,7 @@ namespace HollowZero.Daemons.Event
     {
         public DialogueEventDaemon(Computer computer, string serviceName, OS os) : base(computer, serviceName, os) { }
 
-        protected override bool Registerable => true;
+        public static new bool Registerable => true;
 
         [XMLStorage]
         public string DEventTitle = "Dialogue Event Title";

@@ -45,7 +45,7 @@
 - [ ] Shops
     - [X] Program Shops
     - [X] Gacha Shops
-    - [ ] Antivirus Shop
+    - [X] Antivirus Shop
     - [ ] Chance Shop / Trinity
 - [ ] Layer System
     - [ ] Base Layers
