@@ -6,6 +6,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using static HollowZero.HollowLogger;
+
 namespace HollowZero.Nodes.LayerSystem
 {
     public class HollowLayer

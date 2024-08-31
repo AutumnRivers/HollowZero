@@ -8,11 +8,12 @@ namespace HollowZero
 {
     public static class ListExtensions
     {
+        private static Random random = new();
+
         public static T GetRandom<T>(this List<T> e)
         {
             if (!e.Any()) return default;
 
-            Random random = new Random();
             int index = random.Next(e.Count());
 
             return e[index];
@@ -36,7 +37,6 @@ namespace HollowZero
             if (!e.Any()) return default;
 
             if (!e.Any()) return default;
-            Random random = new Random();
             int index = random.Next(e.Count());
             return e.ElementAtOrDefault(index);
         }

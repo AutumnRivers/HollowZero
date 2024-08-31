@@ -67,7 +67,7 @@ namespace HollowZero.Nodes.LayerSystem
         public static bool canMemDump = false;
         public static bool canWireshark = false;
 
-        private static List<Computer> GenerateSolutionComp(Computer comp, Computer prevComp, int index, ref List<Computer> layerNodes,
+        private static List<Computer> GenerateSolutionComp(Computer comp, Computer prevComp, ref List<Computer> layerNodes,
             ref bool needsLinking)
         {
             var solutionType = solutionTypes.GetRandom();
@@ -79,37 +79,43 @@ namespace HollowZero.Nodes.LayerSystem
             };
             prevComp.Memory = new();
 
+            LogDebug($"Generating {solutionType} solution for {prevComp.name} (ID: {prevComp.idName})", true);
             switch(solutionType)
             {
                 case GainAdminAccess:
-                    linkComputer();
                     needsLinking = true;
                     break;
                 case DecryptFile:
                     if(canDecrypt)
                     {
-                        linkComputer();
                         needsLinking = true;
                         break;
                     }
                     var encFile = GenerateEncryptedFile(prevComp, comp, out string pass);
                     if(pass != "")
                     {
-                        int chance = random.Next(1, 4);
+                        int chance = random.Next(1, 5);
                         switch(chance)
                         {
                             case 1:
                                 prevComp.getFolderFromPath("home").files.Add(new FileEntry(pass, "enc_pass.txt"));
                                 break;
                             case 2:
-                                prevComp.Memory.CommandsRun.Add($"encypher next.txt {pass}");
+                                prevComp.Memory.CommandsRun.Add(pass);
                                 break;
                             case 3:
-                                prevComp.Memory.DataBlocks.Add($"pass: {pass} (delete later)");
+                                prevComp.Memory.DataBlocks.Add(pass);
                                 break;
                             case 4:
-                                var eos = GenerateEOSDevice("Test eOS", $"{encFile.name} pass: {pass}", prevComp);
+                                var eos = GenerateEOSDevice("Test eOS", pass, prevComp);
                                 layerNodes.Add(eos);
+                                int index = layerNodes.IndexOf(eos);
+                                prevComp.links.Add(index);
+                                if(!prevComp.attatchedDeviceIDs.IsNullOrWhiteSpace())
+                                {
+                                    prevComp.attatchedDeviceIDs += ",";
+                                }
+                                prevComp.attatchedDeviceIDs += eos.idName;
                                 break;
                         }
                     }
@@ -118,7 +124,6 @@ namespace HollowZero.Nodes.LayerSystem
                 case MemoryDump:
                     if(canMemDump)
                     {
-                        linkComputer();
                         needsLinking = true;
                         break;
                     }
@@ -127,7 +132,6 @@ namespace HollowZero.Nodes.LayerSystem
                 case WiresharkCapture:
                     if(canWireshark)
                     {
-                        linkComputer();
                         needsLinking = true;
                         break;
                     }
@@ -136,11 +140,6 @@ namespace HollowZero.Nodes.LayerSystem
                     wsContent.entries.Add(wsEntry);
                     StuxnetCore.wiresharkComps.Add(prevComp.idName, wsContent);
                     break;
-            }
-
-            void linkComputer()
-            {
-                //comp.links.Add(index + 1);
             }
 
             comps[0] = comp;
@@ -177,9 +176,6 @@ namespace HollowZero.Nodes.LayerSystem
                 appsFolder.files.Clear();
                 appsFolder.folders.Clear();
             }
-            os.netMap.nodes.Add(eosDevice);
-            linkedComp.links.Add(os.netMap.nodes.IndexOf(eosDevice));
-            linkedComp.attatchedDeviceIDs += eosID;
             return eosDevice;
         }
 
@@ -188,6 +184,7 @@ namespace HollowZero.Nodes.LayerSystem
             HollowLayer layer = new();
             int layerSize = LayerSize;
 
+            StuxnetCore.wiresharkComps.Clear();
             Computer lastComp = null;
 
             for(var i = 0; i < layerSize + 1; i++)
@@ -202,8 +199,7 @@ namespace HollowZero.Nodes.LayerSystem
                 List<Computer> solComps = new();
                 if(i > 0)
                 {
-                    LogDebug(lastComp.idName);
-                    solComps = GenerateSolutionComp(genComp, lastComp, i, ref layer.nodes, ref link);
+                    solComps = GenerateSolutionComp(genComp, lastComp, ref layer.nodes, ref link);
                     genComp = solComps[0];
                 }
                 if(lastNode)
@@ -278,12 +274,33 @@ namespace HollowZero.Nodes.LayerSystem
 
                 if(nextNode == null)
                 {
-                    solution.Add(new(node, LayerSolutionStep.SolutionType.GainAdminAccess));
+                    solution.Add(new(node, GainAdminAccess));
                     continue;
                 }
-                if(node.links.Contains(idx + 1))
+                if(node.idName.StartsWith("eos"))
                 {
-                    solution.Add(new(node, LayerSolutionStep.SolutionType.GainAdminAccess, nextNode));
+                    continue;
+                }
+
+                if (nextNode.idName.StartsWith("eos"))
+                {
+                    nextNode = layer.nodes[idx + 2];
+                }
+                if (node.links.Contains(layer.nodes.IndexOf(nextNode)))
+                {
+                    solution.Add(new(node, GainAdminAccess, nextNode));
+                    continue;
+                } else if(findMemoryWithContent(node, nextNode.ip))
+                {
+                    solution.Add(new(node, MemoryDump, nextNode));
+                    continue;
+                } else if(StuxnetCore.wiresharkComps.ContainsKey(node.idName))
+                {
+                    solution.Add(new(node, WiresharkCapture, nextNode));
+                    continue;
+                } else if(findDecryptedFileWithContent(node, nextNode.ip))
+                {
+                    solution.Add(new(node, DecryptFile, nextNode));
                     continue;
                 } else
                 {
@@ -292,6 +309,83 @@ namespace HollowZero.Nodes.LayerSystem
             }
 
             return canSolve;
+
+            bool tryDecryptFile(string fileContent, string pass)
+            {
+                int result = FileEncrypter.FileIsEncrypted(fileContent, pass);
+                return result != 0 && result != 2;
+            }
+
+            bool findDecryptedFileWithContent(Computer comp, string content)
+            {
+                bool canFind = false;
+                List<FileEntry> encryptedFiles = new();
+                string decryptedFile;
+
+                foreach(var folder in comp.files.root.folders)
+                {
+                    if(folder.files.Any(f => f.name.EndsWith(".dec")))
+                    {
+                        encryptedFiles.Add(folder.files.First(f => f.name.EndsWith(".dec")));
+                    }
+                }
+                if (!encryptedFiles.Any()) return false;
+                string possiblePass = "";
+                string[] attachedIDs = new string[0];
+                if(!comp.attatchedDeviceIDs.IsNullOrWhiteSpace())
+                {
+                    if(comp.attatchedDeviceIDs.Contains(","))
+                    {
+                        attachedIDs = comp.attatchedDeviceIDs.Split(',');
+                    } else
+                    {
+                        attachedIDs = new string[1] { comp.attatchedDeviceIDs };
+                    }
+                }
+                foreach(var encFile in encryptedFiles)
+                {
+                    if(tryDecryptFile(encFile.data, ""))
+                    {
+                        string encContent = FileEncrypter.DecryptString(encFile.data, "")[2];
+                        if(encContent.Contains(content))
+                        {
+                            decryptedFile = encContent;
+                            canFind = true;
+                        }
+                    }
+                    if (canFind) continue;
+                    foreach(var folder in comp.files.root.folders)
+                    {
+                        if (folder.files.Any(f => tryDecryptFile(encFile.data, f.data))) canFind = true;
+                    }
+                    if(comp.Memory != null)
+                    {
+                        if (comp.Memory.CommandsRun.Any(c => tryDecryptFile(encFile.data, c))) canFind = true;
+                        if (comp.Memory.DataBlocks.Any(d => tryDecryptFile(encFile.data, d))) canFind = true;
+                    }
+                    if(attachedIDs.Any(c => c.StartsWith("eos_")))
+                    {
+                        var eosID = attachedIDs.First(c => c.StartsWith("eos_"));
+                        var eosDevice = layer.nodes.First(c => c.idName == eosID);
+                        var notesFolder = eosDevice.files.root.searchForFolder("eos").searchForFolder("notes");
+                        if(notesFolder.files.Any())
+                        {
+                            possiblePass = notesFolder.files[0].data;
+                            if (tryDecryptFile(encFile.data, possiblePass)) canFind = true;
+                        }
+                    }
+                }
+
+                return canFind;
+            }
+
+            bool findMemoryWithContent(Computer comp, string content)
+            {
+                bool canFind = false;
+                if (comp.Memory == null) return false;
+                canFind = comp.Memory.DataBlocks.Any(b => b.Contains(content)) || comp.Memory.CommandsRun.Any(c => c.Contains(content));
+                return canFind;
+            }
         }
     }
 }

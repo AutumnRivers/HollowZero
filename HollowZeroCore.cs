@@ -749,6 +749,12 @@ namespace HollowZero
         internal static void LogDebug(string msg) => HollowLogSource.LogDebug(msg);
         internal static void LogWarning(string msg) => HollowLogSource.LogWarning(msg);
         internal static void LogCustom(LogLevel level, string msg) => HollowLogSource.Log(level, msg);
+
+        internal static void LogDebug(string msg, bool onlyIfDebugModeIsEnabled)
+        {
+            if (!OS.DEBUG_COMMANDS && onlyIfDebugModeIsEnabled) return;
+            HollowLogSource.LogDebug(msg);
+        }
     }
 
     public static class PlayerManager
