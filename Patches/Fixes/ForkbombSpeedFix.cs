@@ -10,6 +10,8 @@ using Mono.Cecil.Cil;
 
 using Pathfinder.Event.Gameplay;
 
+using static HollowZero.HollowLogger;
+
 namespace HollowZero
 {
     [HarmonyPatch]
@@ -23,17 +25,25 @@ namespace HollowZero
         public static void FixForkbombSpeedsToFloat(ILContext il)
         {
             ILCursor c = new ILCursor(il);
-
-            c.GotoNext(MoveType.Before,
+            try
+            {
+                c.GotoNext(MoveType.Before,
                 x => x.MatchDup(),
                 x => x.MatchLdfld(AccessTools.Field(typeof(ExeModule), nameof(ExeModule.ramCost))),
                 x => x.MatchLdloc(0),
                 x => x.MatchAdd(),
                 x => x.MatchStfld(AccessTools.Field(typeof(ExeModule), nameof(ExeModule.ramCost)))
             );
-            c.RemoveRange(4);
-            c.Emit(OpCodes.Ldsfld, AccessTools.Field(typeof(ForkbombSpeedFix), nameof(newRamCost)));
-            c.EmitDelegate(int (float newRamCost) => (int)Math.Floor(newRamCost));
+                c.RemoveRange(4);
+                c.Emit(OpCodes.Ldsfld, AccessTools.Field(typeof(ForkbombSpeedFix), nameof(newRamCost)));
+                c.EmitDelegate(int (float newRamCost) => (int)Math.Floor(newRamCost));
+            } catch
+            {
+                LogCustom(BepInEx.Logging.LogLevel.Fatal,
+                    $"[Forkbomb Patch] FAILED TO LOAD FORKBOMB PATCH!\n" +
+                    "This happens randomly. This is often fixed by restarting Hacknet.\n" +
+                    "DO NOT MAKE A BUG REPORT! I CAN'T DO ANYTHING ABOUT IT!!!");
+            }
         }
 
         public const float DEFAULT_FORKBOMB_SPEED = 150f;

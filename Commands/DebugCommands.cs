@@ -4,6 +4,10 @@ using System.Reflection;
 using System.Text;
 using Hacknet;
 
+using HollowZero.Nodes.LayerSystem;
+
+using static HollowZero.HollowLogger;
+
 namespace HollowZero.Commands
 {
     public class DebugCommands
@@ -20,7 +24,9 @@ namespace HollowZero.Commands
             { FindMethod("UpgradeMod"), "upmod" },
             { FindMethod("AddCorruption"), "addcorr" },
             { FindMethod("ListTimers"), "timers" },
-            { FindMethod("SetForkbombSpeed"), "setfbs" }
+            { FindMethod("SetForkbombSpeed"), "setfbs" },
+            { FindMethod("GenerateRandomLayer"), "grlayer" },
+            { FindMethod("GenerateSolvableLayer"), "gslayer" }
         };
 
         private static MethodInfo FindMethod(string name)
@@ -223,6 +229,25 @@ namespace HollowZero.Commands
             }
 
             HollowZeroCore.ForkbombMultiplier = mult;
+        }
+
+        public static void GenerateRandomLayer(OS os, string[] args)
+        {
+            var randomLayer = LayerGenerator.GenerateTrueRandomLayer();
+            LogImportant(randomLayer.ToString());
+            os.write("Sent layer details to actual terminal");
+        }
+
+        public static void GenerateSolvableLayer(OS os, string[] args)
+        {
+            var solvableLayer = LayerGenerator.GenerateSolvableLayer();
+            if(!solvableLayer.Solvable)
+            {
+                LogWarning("--- FOLLOWING LAYER IS NOT SOLVABLE! SOMEONE MESSED UP, AND IT'S PROBABLY YOU ---");
+                os.write("<!!!> Note: the following layer is NOT solvable! <!!!>");
+            }
+            LogImportant(solvableLayer.ToString());
+            os.write("Sent layer details to actual terminal");
         }
     }
 }

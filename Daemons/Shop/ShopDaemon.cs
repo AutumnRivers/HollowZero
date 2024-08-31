@@ -22,7 +22,9 @@ namespace HollowZero.Daemons.Shop
         public Dictionary<HollowProgram, int> ProgramsForSale = new Dictionary<HollowProgram, int>();
 
         public Dictionary<string, string> BaseGameExeWildcards = new Dictionary<string, string>();
-        public List<HollowProgram> BaseGamePrograms = new List<HollowProgram>();
+        public static List<HollowProgram> BaseGamePrograms = new List<HollowProgram>();
+
+        public static List<HollowProgram> CustomPrograms = new();
 
         protected enum StoreScreen
         {
@@ -58,11 +60,31 @@ namespace HollowZero.Daemons.Shop
                 };
                 BaseGamePrograms.Add(baseGameProgram);
             }
+
+            var wiresharkProgram = new HollowProgram("Wireshark")
+            {
+                ProgramID = 11111,
+                FileContent = ComputerLoader.filter("#WIRESHARK_EXE#")
+            };
+            var radioV3Program = new HollowProgram("RadioV3")
+            {
+                ProgramID = 33333,
+                FileContent = ComputerLoader.filter("#RADIO_V3#")
+            };
+
+            CustomPrograms.Add(wiresharkProgram);
+            CustomPrograms.Add(radioV3Program);
         }
 
         protected Func<HollowProgram, bool> ByName(string name)
         {
             return p => p.DisplayName == name;
+        }
+
+        public static string GetExeDataByName(string name)
+        {
+            var exe = BaseGamePrograms.First(p => p.DisplayName == name);
+            return exe.FileContent;
         }
 
         protected void PropagateProgramsForSale()
@@ -107,6 +129,10 @@ namespace HollowZero.Daemons.Shop
             ProgramsForSale.Add(BaseGamePrograms.First(ByName("Clock")), 1000);
             ProgramsForSale.Add(BaseGamePrograms.First(ByName("HexClock")), 1000);
             ProgramsForSale.Add(BaseGamePrograms.First(ByName("ClockV2")), 2000);
+
+            // Custom
+            ProgramsForSale.Add(CustomPrograms[0], 750);
+            ProgramsForSale.Add(CustomPrograms[1], 9999);
         }
 
         protected bool CanPurchaseItem(int cost)

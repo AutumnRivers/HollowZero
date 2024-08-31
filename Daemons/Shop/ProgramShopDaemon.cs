@@ -26,10 +26,10 @@ namespace HollowZero.Daemons.Shop
 
         public const int MAX_ITEMS = 5;
 
-        private List<HollowProgram> UserPrograms = new List<HollowProgram>();
-        private readonly List<Tuple<string, int, List<HollowProgram>>> ProgramBundles = new List<Tuple<string, int, List<HollowProgram>>>();
+        private List<HollowProgram> UserPrograms = new();
+        private readonly List<Tuple<string, int, List<HollowProgram>>> ProgramBundles = new();
 
-        private readonly Dictionary<string, int> ItemsForSale = new Dictionary<string, int>();
+        private Dictionary<string, int> ItemsForSale = new();
         private Tuple<string, int, List<HollowProgram>> CurrentBundleForSale;
 
         /*
@@ -133,7 +133,7 @@ namespace HollowZero.Daemons.Shop
 
             Random random = new Random();
             int chance = random.Next(0, 100);
-            if(chance > -1 && ProgramBundles.Any())
+            if(chance > 15 && ProgramBundles.Any())
             {
                 var bundle = ProgramBundles.GetRandom();
                 CurrentBundleForSale = bundle;

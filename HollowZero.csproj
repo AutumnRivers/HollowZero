@@ -101,6 +101,8 @@
     <Compile Include="Extensions\XDocumentExtensions.cs" />
     <Compile Include="HollowPack.cs" />
     <Compile Include="HollowZeroCore.cs" />
+    <Compile Include="Nodes\LayerSystem\HollowLayer.cs" />
+    <Compile Include="Nodes\LayerSystem\LayerGenerator.cs" />
     <Compile Include="Nodes\NodeGenerator.cs" />
     <Compile Include="Nodes\NodeManager.cs" />
     <Compile Include="Patches\CommandDisabler.cs" />

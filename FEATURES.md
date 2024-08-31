@@ -52,12 +52,20 @@
     - [ ] Timed Layers - Typically reserved for transitions (e.g., 29 -> 30)
     - [ ] Unstable Layers - Raises infection the longer the player stays in one
     - [ ] Transition Nodes
-    - [ ] Node Generation
+    - [X] Node Generation
         - [X] Basic Node Generation
-        - [ ] Event Node Generation (might work, untested)
+        - [X] Event Node Generation
+    - [ ] Layer Generation
+        - [X] Randomized Layers (Always Unsolvable)
+        - [ ] Solvable Layers
+            - [X] Basic S.Layers (Go from one node to another)
+            - [ ] Advanced S.Layers (Decrypt files, go to shops, etc.)
     - [ ] Winnable Layer Generation
         - [ ] Program Balancing
         - [ ] Proxy/Firewall Balancing
 - [ ] Story Mode
     - [ ] Story Events
     - [ ] Pre-Defined Layers
+- [ ] Misc.
+    - [ ] Store Robbery System
+    - [ ] View Layer Solution (for a price... like, nullify supportive events for the layer? add malware?)

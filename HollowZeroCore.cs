@@ -37,6 +37,8 @@ using BepInEx.Logging;
 
 using static HollowZero.HollowLogger;
 
+using static HollowZero.Nodes.LayerSystem.LayerGenerator;
+
 namespace HollowZero
 {
     [BepInDependency("autumnrivers.stuxnet")]
@@ -751,12 +753,55 @@ namespace HollowZero
 
     public static class PlayerManager
     {
+        private static bool hasDecypher = false;
+        private static bool hasDecHead = false;
+
+        private static bool hasMemGen = false;
+        private static bool hasMemForen = false;
+
+        private static readonly string[] decData = new string[]
+        {
+            ShopDaemon.GetExeDataByName("Decypher"),
+            ShopDaemon.GetExeDataByName("DECHead")
+        };
+
+        private static readonly string[] memData = new string[]
+        {
+            ShopDaemon.GetExeDataByName("MemDumpGenerator"),
+            ShopDaemon.GetExeDataByName("MemForensics")
+        };
+
         public static void AddProgramToPlayerPC(string programName, string programContent)
         {
-            FileEntry programFile = new FileEntry(programContent, $"{programName}.exe");
+            FileEntry programFile = new(programContent, $"{programName}.exe");
             Folder binFolder = OS.currentInstance.thisComputer.getFolderFromPath("bin");
 
-            if (binFolder.containsFile($"{programName}.exe")) return;
+            if (decData[0] == programContent)
+            {
+                hasDecypher = true;
+                if(hasDecHead) { canDecrypt = true; }
+            } else if (decData[1] == programContent)
+            {
+                hasDecHead = true;
+                if(hasDecypher) { canDecrypt = true; }
+            }
+
+            if (memData[0] == programContent)
+            {
+                hasMemGen = true;
+                if(hasMemForen) { canMemDump = true; }
+            } else if (memData[1] == programContent)
+            {
+                hasMemForen = true;
+                if(hasMemGen) { canMemDump = true; }
+            }
+
+            if(programContent == ComputerLoader.filter("#WIRESHARK_EXE#"))
+            {
+                canWireshark = true;
+            }
+
+            if (binFolder.containsFileWithData(programContent)) return;
 
             binFolder.files.Add(programFile);
         }

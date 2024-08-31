@@ -8,6 +8,7 @@ using Hacknet;
 
 using HollowZero.Daemons;
 using HollowZero.Daemons.Event;
+using HollowZero.Daemons.Shop;
 
 using Pathfinder.Daemon;
 
@@ -19,7 +20,7 @@ namespace HollowZero.Nodes
         {
             ip ??= GetNewIP();
             OS os = OS.currentInstance;
-            Computer newNode = new Computer(title, ip, os.netMap.getRandomPosition(), 0, 4, os);
+            Computer newNode = new(title, ip, os.netMap.getRandomPosition(), 0, 4, os);
             newNode.idName = GenerateID();
 
             if (daemons == null) return newNode;
@@ -39,23 +40,68 @@ namespace HollowZero.Nodes
             }
 
             return newNode;
-
-            string GenerateID()
-            {
-                Random random = new Random();
-                var id = random.Next(0, 1000).ToString();
-
-                if(os.netMap.nodes.Exists(c => c.idName == id))
-                {
-                    return GenerateID();
-                }
-                return id;
-            }
         }
 
         public static Computer GenerateComputer(string title)
         {
             return GenerateComputer(title, null);
+        }
+
+        private static readonly Random random = new();
+
+        private static string GenerateID()
+        {
+            var id = random.Next(0, 1000).ToString();
+            OS os = OS.currentInstance;
+
+            if (os.netMap.nodes.Exists(c => c.idName == id))
+            {
+                return GenerateID();
+            }
+            return id;
+        }
+
+        private static readonly List<string> possibleEvents = new()
+        {
+            "choice", "dialogue", "avshop", "gachashop", "progshop", "reststop",
+            "none"
+        };
+
+        public static Computer GenerateEventComputer(string title)
+        {
+            int idx = random.Next(0, possibleEvents.Count);
+            string ev = possibleEvents[idx];
+            HollowDaemon eventDaemon;
+            var comp = GenerateComputer(title);
+            OS os = OS.currentInstance;
+
+            switch(ev)
+            {
+                case "choice":
+                    eventDaemon = new ChoiceEventDaemon(comp, "Choice Event", os);
+                    break;
+                case "avshop":
+                    eventDaemon = new AntivirusShopDaemon(comp, "Antivirus Shop", os);
+                    break;
+                case "gachashop":
+                    eventDaemon = new GachaShopDaemon(comp, "Gacha Shop", os);
+                    break;
+                case "progshop":
+                    eventDaemon = new ProgramShopDaemon(comp, "Program Shop", os);
+                    break;
+                case "reststop":
+                    eventDaemon = new RestStopDaemon(comp, "Rest Stop", os);
+                    break;
+                case "none":
+                default:
+                    eventDaemon = null;
+                    break;
+            }
+
+            if (eventDaemon == null) return comp;
+            comp.daemons.Add(eventDaemon);
+            comp.initDaemons();
+            return comp;
         }
 
         public static Computer GenerateAndAddComputer(string title, List<BaseDaemon> daemons, string ip = null)
