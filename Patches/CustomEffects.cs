@@ -41,6 +41,15 @@ namespace HollowZero
             RectOpacity = 100.0f;
             EffectFinished = true;
         }
+
+        public static void ChangeEffect(Action newEffect, bool autoStart = false)
+        {
+            EffectsActive = false;
+            EffectFinished = false;
+            CurrentStage = 0;
+            CurrentEffect = newEffect;
+            if (autoStart) EffectsActive = true;
+        }
     }
 
     [HarmonyPatch]

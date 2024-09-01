@@ -86,6 +86,7 @@
     <Compile Include="Daemons\Event\EventDaemon.cs" />
     <Compile Include="Daemons\Event\UnavEventDaemon.cs" />
     <Compile Include="Daemons\HollowDaemon.cs" />
+    <Compile Include="Daemons\Layers\LayerTransitionDaemon.cs" />
     <Compile Include="Daemons\RestStopDaemon.cs" />
     <Compile Include="Daemons\Shop\AntivirusShopDaemon.cs" />
     <Compile Include="Daemons\Shop\GachaShopDaemon.cs" />

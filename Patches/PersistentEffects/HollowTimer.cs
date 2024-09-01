@@ -160,6 +160,7 @@ namespace HollowZero
                 if (order.NeedsRemoval)
                 {
                     timers.Remove(timer);
+                    knownIDs.Remove(timer.ID);
                     continue;
                 }
 

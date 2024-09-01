@@ -63,9 +63,9 @@ namespace HollowZero.Nodes.LayerSystem
         private static readonly List<LayerSolutionStep.SolutionType> solutionTypes =
             solutionTypesArr.Cast<LayerSolutionStep.SolutionType>().ToList();
 
-        public static bool canDecrypt = false;
-        public static bool canMemDump = false;
-        public static bool canWireshark = false;
+        public static bool CanDecrypt { get; set; } = false;
+        public static bool CanMemDump { get; set; } = false;
+        public static bool CanWireshark { get; set; } = false;
 
         private static List<Computer> GenerateSolutionComp(Computer comp, Computer prevComp, ref List<Computer> layerNodes,
             ref bool needsLinking)
@@ -83,10 +83,11 @@ namespace HollowZero.Nodes.LayerSystem
             switch(solutionType)
             {
                 case GainAdminAccess:
+                default:
                     needsLinking = true;
                     break;
                 case DecryptFile:
-                    if(canDecrypt)
+                    if(CanDecrypt)
                     {
                         needsLinking = true;
                         break;
@@ -122,7 +123,7 @@ namespace HollowZero.Nodes.LayerSystem
                     prevComp.getFolderFromPath("home").files.Add(encFile);
                     break;
                 case MemoryDump:
-                    if(canMemDump)
+                    if(CanMemDump)
                     {
                         needsLinking = true;
                         break;
@@ -130,7 +131,7 @@ namespace HollowZero.Nodes.LayerSystem
                     prevComp.Memory.DataBlocks.Add("--) " + comp.ip);
                     break;
                 case WiresharkCapture:
-                    if(canWireshark)
+                    if(CanWireshark)
                     {
                         needsLinking = true;
                         break;
@@ -190,11 +191,16 @@ namespace HollowZero.Nodes.LayerSystem
             for(var i = 0; i < layerSize + 1; i++)
             {
                 bool lastNode = i == layerSize;
+                bool firstNode = lastComp == null;
                 bool link = false;
                 var genComp = NodeGenerator.GenerateComputer($"TestComp{i + 1}");
                 if (Utils.flipCoin())
                 {
                     genComp = NodeGenerator.GenerateEventComputer($"TestComp{i + 1}");
+                }
+                if(HollowZeroCore.CurrentLayer % 5 == 0 && firstNode)
+                {
+                    genComp = NodeGenerator.GenerateProgramShopComp();
                 }
                 List<Computer> solComps = new();
                 if(i > 0)
@@ -204,7 +210,7 @@ namespace HollowZero.Nodes.LayerSystem
                 }
                 if(lastNode)
                 {
-                    // TODO: Layer transition node stuff...
+                    genComp = NodeGenerator.GenerateTransitionNode();
                 }
                 layer.nodes.Add(genComp);
                 int currentCompIndex = layer.nodes.IndexOf(genComp);

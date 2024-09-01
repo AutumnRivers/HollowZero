@@ -104,6 +104,24 @@ namespace HollowZero.Nodes
             return comp;
         }
 
+        public static Computer GenerateProgramShopComp()
+        {
+            var comp = GenerateComputer("Program Shop");
+            ProgramShopDaemon programShop = new(comp, "Program Shop", OS.currentInstance);
+            comp.daemons.Add(programShop);
+            comp.initDaemons();
+            return comp;
+        }
+
+        public static Computer GenerateTransitionNode()
+        {
+            var comp = GenerateComputer("Exit Point " + random.Next(1, 10) + random.Next(1, 10) + random.Next(1, 10));
+            LayerTransitionDaemon transitionDaemon = new(comp, "Transition Point", OS.currentInstance);
+            comp.daemons.Add(transitionDaemon);
+            comp.initDaemons();
+            return comp;
+        }
+
         public static Computer GenerateAndAddComputer(string title, List<BaseDaemon> daemons, string ip = null)
         {
             var node = GenerateComputer(title, daemons, ip: ip);

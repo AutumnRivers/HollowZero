@@ -1,7 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+
 using Hacknet;
 
 using HollowZero.Nodes.LayerSystem;
@@ -27,7 +29,8 @@ namespace HollowZero.Commands
             { FindMethod("SetForkbombSpeed"), "setfbs" },
             { FindMethod("GenerateRandomLayer"), "grlayer" },
             { FindMethod("GenerateSolvableLayer"), "gslayer" },
-            { FindMethod("ListDebugStats"), "dbgstats" }
+            { FindMethod("ListDebugStats"), "dbgstats" },
+            { FindMethod("TestLayerTransition"), "nextlayerpls" }
         };
 
         private static MethodInfo FindMethod(string name)
@@ -253,11 +256,27 @@ namespace HollowZero.Commands
 
         public static void ListDebugStats(OS os, string[] args)
         {
-            os.write($"Can Decrypt Files: {LayerGenerator.canDecrypt}");
-            os.write($"Can Memory Dump: {LayerGenerator.canMemDump}");
-            os.write($"Can Wireshark: {LayerGenerator.canWireshark}");
+            os.write($"Can Decrypt Files: {LayerGenerator.CanDecrypt}");
+            os.write($"Can Memory Dump: {LayerGenerator.CanMemDump}");
+            os.write($"Can Wireshark: {LayerGenerator.CanWireshark}");
             os.write($"Forkbomb Speed Multiplier: {HollowZeroCore.ForkbombMultiplier.ToString("n2")}x");
             os.write($"Seen Events: {string.Join(", ", HollowZeroCore.SeenEvents)}");
+        }
+
+        public static void TestLayerTransition(OS os, string[] args)
+        {
+            os.write("you got it. 3 second warning");
+            os.delayer.Post(ActionDelayer.Wait(3.0), delegate ()
+            {
+                try
+                {
+                    PlayerManager.MoveToNextLayer();
+                } catch(Exception e)
+                {
+                    os.write("hooh. layer transition messed up. bet you feel pretty stupid");
+                    LogError(e.ToString());
+                }
+            });
         }
     }
 }

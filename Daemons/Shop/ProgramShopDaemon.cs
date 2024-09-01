@@ -56,13 +56,13 @@ namespace HollowZero.Daemons.Shop
                 return;
             }
             itemName = itemName.ToLower();
-            if(!canDecrypt && !itemName.StartsWith("dec suite") && CurrentBundleForSale?.ID == "DEC Suite")
+            if(!CanDecrypt && !itemName.StartsWith("dec suite") && CurrentBundleForSale?.ID == "DEC Suite")
             {
                 badIdea();
-            } else if(!canMemDump && !itemName.StartsWith("memory master") && CurrentBundleForSale?.ID == "Memory Master")
+            } else if(!CanMemDump && !itemName.StartsWith("memory master") && CurrentBundleForSale?.ID == "Memory Master")
             {
                 badIdea();
-            } else if(!canWireshark && itemName != "wireshark" && HollowZeroCore.CurrentLayer >= 10)
+            } else if(!CanWireshark && itemName != "wireshark" && HollowZeroCore.CurrentLayer >= 10)
             {
                 badIdea();
             } else
@@ -189,7 +189,7 @@ namespace HollowZero.Daemons.Shop
             for (var i = 0; i < MAX_ITEMS; i++)
             {
                 var item = GetRandomItem();
-                if (!ItemsForSale.Any(i => i.Key == "Wireshark") && !canWireshark)
+                if (!ItemsForSale.Any(i => i.Key == "Wireshark") && !CanWireshark)
                 {
                     ItemsForSale.Add("Wireshark", 650);
                     continue;
@@ -212,10 +212,10 @@ namespace HollowZero.Daemons.Shop
             if (chance > (100 * (HollowZeroCore.CurrentLayer % 5)) - 15 && ProgramBundles.Any())
             {
                 HollowBundle bundle;
-                if (!canDecrypt)
+                if (!CanDecrypt)
                 {
                     bundle = ProgramBundles.First(p => p.ID == "DEC Suite");
-                } else if(!canMemDump)
+                } else if(!CanMemDump)
                 {
                     bundle = ProgramBundles.First(p => p.ID == "Memory Master");
                 } else
