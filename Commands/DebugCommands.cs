@@ -26,7 +26,8 @@ namespace HollowZero.Commands
             { FindMethod("ListTimers"), "timers" },
             { FindMethod("SetForkbombSpeed"), "setfbs" },
             { FindMethod("GenerateRandomLayer"), "grlayer" },
-            { FindMethod("GenerateSolvableLayer"), "gslayer" }
+            { FindMethod("GenerateSolvableLayer"), "gslayer" },
+            { FindMethod("ListDebugStats"), "dbgstats" }
         };
 
         private static MethodInfo FindMethod(string name)
@@ -248,6 +249,15 @@ namespace HollowZero.Commands
             }
             LogImportant(solvableLayer.ToString());
             os.write("Sent layer details to actual terminal");
+        }
+
+        public static void ListDebugStats(OS os, string[] args)
+        {
+            os.write($"Can Decrypt Files: {LayerGenerator.canDecrypt}");
+            os.write($"Can Memory Dump: {LayerGenerator.canMemDump}");
+            os.write($"Can Wireshark: {LayerGenerator.canWireshark}");
+            os.write($"Forkbomb Speed Multiplier: {HollowZeroCore.ForkbombMultiplier.ToString("n2")}x");
+            os.write($"Seen Events: {string.Join(", ", HollowZeroCore.SeenEvents)}");
         }
     }
 }

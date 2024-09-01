@@ -44,6 +44,18 @@ namespace HollowZero.Daemons.Shop
 
         public static new bool Registerable => false;
 
+        public bool hasBeenRobbed = false;
+
+        public virtual void RobStore(string itemName)
+        {
+            if(hasBeenRobbed)
+            {
+                OS.currentInstance.write("<!> This store is on high alert! You can't rob it again.");
+                return;
+            }
+            hasBeenRobbed = true;
+        }
+
         public override void initFiles()
         {
             base.initFiles();
@@ -131,7 +143,7 @@ namespace HollowZero.Daemons.Shop
             ProgramsForSale.Add(BaseGamePrograms.First(ByName("ClockV2")), 2000);
 
             // Custom
-            ProgramsForSale.Add(CustomPrograms[0], 750);
+            ProgramsForSale.Add(CustomPrograms[0], 650);
             ProgramsForSale.Add(CustomPrograms[1], 9999);
         }
 

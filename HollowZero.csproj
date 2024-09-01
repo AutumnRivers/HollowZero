@@ -79,6 +79,7 @@
     <Compile Include="Commands\Inventory.cs" />
     <Compile Include="Commands\NodeCommands.cs" />
     <Compile Include="Commands\QuickStatCommands.cs" />
+    <Compile Include="Commands\RobCommand.cs" />
     <Compile Include="Daemons\Event\ChoiceEventDaemon.cs" />
     <Compile Include="Daemons\Event\Choices\TestChoiceEvents.cs" />
     <Compile Include="Daemons\Event\DialogueEventDaemon.cs" />

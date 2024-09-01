@@ -147,11 +147,6 @@ namespace HollowZero
             //HZLog("Adding actions...");
 
             HZLog("Adding daemons...");
-            /*DaemonManager.RegisterDaemon<DialogueEventDaemon>();
-            DaemonManager.RegisterDaemon<ChoiceEventDaemon>();
-            DaemonManager.RegisterDaemon<RestStopDaemon>();
-            DaemonManager.RegisterDaemon<ProgramShopDaemon>();
-            DaemonManager.RegisterDaemon<GachaShopDaemon>();*/
             RegisterDaemons();
 
             HZLog("Adding commands...");
@@ -164,6 +159,9 @@ namespace HollowZero
             // UI Commands
             CommandManager.RegisterCommand("guidebook", GuidebookCommands.ActivateGuidebook);
             CommandManager.RegisterCommand("inventory", InventoryCommands.ShowInventory);
+
+            // Rob Store Command
+            CommandManager.RegisterCommand("steal", RobCommand.RobStore);
 
             // Debug
             RegisterCommands(typeof(DebugCommands), DebugCommands.Aliases, true);
@@ -472,7 +470,7 @@ namespace HollowZero
             }
         }
 
-        private static void Overload(int newInfection)
+        private static void Overload(int newInfection, bool overflow)
         {
             foreach (var mod in CollectedMods.Where(m => m.Trigger == Modification.ModTriggers.OnOverload))
             {
@@ -491,7 +489,7 @@ namespace HollowZero
                 }
             }
 
-            InfectionLevel = 0;
+            InfectionLevel = overflow ? newInfection - 100 : 0;
 
             OS os = OS.currentInstance;
             os.IncConnectionOverlay.sound1.Play();
@@ -537,7 +535,7 @@ namespace HollowZero
             }
         }
 
-        public static void IncreaseInfection(int amount)
+        public static void IncreaseInfection(int amount, bool overflow = false)
         {
             foreach(var mod in CollectedMods.Where(m => m.Trigger == Modification.ModTriggers.OnInfectionGain))
             {
@@ -556,7 +554,7 @@ namespace HollowZero
 
             if(InfectionLevel + amount >= 100)
             {
-                Overload(InfectionLevel + amount);
+                Overload(InfectionLevel + amount, overflow);
             } else
             {
                 InfectionLevel += amount;
@@ -810,6 +808,24 @@ namespace HollowZero
             if (binFolder.containsFileWithData(programContent)) return;
 
             binFolder.files.Add(programFile);
+        }
+
+        public static void NextLayer()
+        {
+            int nextLayer = HollowZeroCore.CurrentLayer + 1;
+            if(nextLayer % 5 == 0)
+            {
+                if(!canDecrypt)
+                {
+                    canDecrypt = true;
+                } else if(!canMemDump)
+                {
+                    canMemDump = true;
+                } else if(!canWireshark)
+                {
+                    canWireshark = true;
+                }
+            }
         }
     }
 

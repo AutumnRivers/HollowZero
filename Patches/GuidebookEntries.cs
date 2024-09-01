@@ -102,8 +102,22 @@ namespace HollowZero.Patches
                 Title = "Shops",
                 Content = "The bread to the butter of credits.\n\n" +
                 "Shops can contain Modifications and Programs. Certain shops may also have ways to decrease Infection " +
-                "or remove Malware as sale options. Multiple shop types exist, so keep an eye on any you may need.",
+                "or remove Malware as sale options. Multiple shop types exist, so keep an eye on any you may need.\n\n" +
+                "You *can* steal from shops, but you'll be paying the price in a different manor...",
                 ShortTitle = "Econ. - Shops"
+            },
+            new GuidebookEntry()
+            {
+                Title = "Thievery",
+                Content = "Don't have enough credits, but the shop has something you need to progress? Well...\n\n" +
+                "You can steal from shops, but you'll be taking a hit to your infection as a result. To steal from a shop, do:\n" +
+                "[ steal <Item Name> ] (e.g., [ steal SSHCrack ], [ steal DEC Suite ]\n" +
+                "You can only steal from a shop ONCE, and doing so will raise your infection by 10% of the item's original price.\n\n" +
+                "Unlike other infection increases, this will overflow your current infection if you overload. So, if you have " +
+                "50 Infection, and steal an item that costs 700 Credits, then you'll sustain a hit of 70 Infection. " +
+                "After receiving your Malware for going over 100 Infection, you'll be left with 20 Infection, instead of " +
+                "it resetting back to 0/Zero.",
+                ShortTitle = "Econ. - Stealing"
             },
             new GuidebookEntry()
             {
