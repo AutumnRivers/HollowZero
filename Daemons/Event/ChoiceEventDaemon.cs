@@ -8,6 +8,8 @@ using System.Linq;
 using Hacknet;
 using Hacknet.Extensions;
 
+using HollowZero.Managers;
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -17,6 +19,7 @@ using Pathfinder.Util;
 using BepInEx;
 
 using static HollowZero.HollowLogger;
+using static HollowZero.Managers.HollowGlobalManager;
 
 namespace HollowZero.Daemons.Event
 {
@@ -102,7 +105,7 @@ namespace HollowZero.Daemons.Event
                 var b = new HollowButton(choice.ButtonID, bounds.X + 25,
                     bounds.Y + bounds.Height - buttonOffset, bounds.Width - 50, 50, $"{choice.Title}\n{choice.Subtext}", buttonColor);
 
-                if(choice.ChoiceType == "takecreds" && HollowZeroCore.PlayerCredits - choice.ChoiceAmount < 0)
+                if(choice.ChoiceType == "takecreds" && PlayerManager.PlayerCredits - choice.ChoiceAmount < 0)
                 {
                     b.Disabled = true;
                     b.DisabledMessage = "<!> You don't have enough credits!";
@@ -110,7 +113,7 @@ namespace HollowZero.Daemons.Event
 
                 foreach(var chance in choice.Chances)
                 {
-                    if(chance.Value.ChoiceType == "takecreds" && HollowZeroCore.PlayerCredits - chance.Value.ChoiceAmount < 0)
+                    if(chance.Value.ChoiceType == "takecreds" && PlayerManager.PlayerCredits - chance.Value.ChoiceAmount < 0)
                     {
                         b.Disabled = true;
                         b.DisabledMessage = "<!> You don't have enough credits to take that risk!";
@@ -299,45 +302,45 @@ namespace HollowZero.Daemons.Event
                 switch (type)
                 {
                     case "upinf":
-                        return delegate () { HollowZeroCore.IncreaseInfection(amount); };
+                        return delegate () { PlayerManager.IncreaseInfection(amount); };
                     case "downinf":
-                        return delegate () { HollowZeroCore.DecreaseInfection(amount); };
+                        return delegate () { PlayerManager.DecreaseInfection(amount); };
                     case "clearinf":
-                        return delegate () { HollowZeroCore.ClearInfection(); };
+                        return delegate () { PlayerManager.ClearInfection(); };
                     case "addmod":
                         return delegate ()
                         {
-                            if(!item.IsNullOrWhiteSpace() && HollowZeroCore.PossibleModifications.TryFind(m => m.ID == item, out var mod))
+                            if(!item.IsNullOrWhiteSpace() && PossibleModifications.TryFind(m => m.ID == item, out var mod))
                             {
-                                HollowManager.AddModification(mod);
+                                InventoryManager.AddModification(mod);
                             } else
                             {
-                                HollowZeroCore.AddModification();
+                                InventoryManager.AddModification();
                             }
                         };
                     case "addcorrupt":
                         return delegate ()
                         {
-                            if (!item.IsNullOrWhiteSpace() && HollowZeroCore.PossibleCorruptions.TryFind(m => m.ID == item, out var cor))
+                            if (!item.IsNullOrWhiteSpace() && PossibleCorruptions.TryFind(m => m.ID == item, out var cor))
                             {
-                                HollowManager.AddCorruption(cor);
+                                InventoryManager.AddCorruption(cor);
                             }
                             else
                             {
-                                HollowZeroCore.AddCorruption();
+                                InventoryManager.AddCorruption();
                             }
                         };
-                    case "addcreds": return delegate () { HollowZeroCore.AddPlayerCredits(amount); };
-                    case "takecreds": return delegate () { HollowZeroCore.RemovePlayerCredits(amount); };
+                    case "addcreds": return delegate () { PlayerManager.AddPlayerCredits(amount); };
+                    case "takecreds": return delegate () { PlayerManager.RemovePlayerCredits(amount); };
                     case "addmalware": return delegate ()
                         {
-                            if (!item.IsNullOrWhiteSpace() && HollowZeroCore.PossibleMalware.TryFind(m => m.DisplayName == item, out var malware))
+                            if (!item.IsNullOrWhiteSpace() && PossibleMalware.TryFind(m => m.DisplayName == item, out var malware))
                             {
-                                HollowManager.AddMalware(malware);
+                                InventoryManager.AddMalware(malware);
                             }
                             else
                             {
-                                HollowZeroCore.AddMalware();
+                                InventoryManager.AddMalware();
                             }
                         };
                     case "none":

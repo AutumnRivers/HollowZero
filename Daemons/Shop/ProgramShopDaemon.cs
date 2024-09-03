@@ -12,7 +12,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 using Pathfinder.GUI;
 
-using static HollowZero.PlayerManager;
+using static HollowZero.Managers.PlayerManager;
 using static HollowZero.Nodes.LayerSystem.LayerGenerator;
 
 namespace HollowZero.Daemons.Shop
@@ -62,7 +62,7 @@ namespace HollowZero.Daemons.Shop
             } else if(!CanMemDump && !itemName.StartsWith("memory master") && CurrentBundleForSale?.ID == "Memory Master")
             {
                 badIdea();
-            } else if(!CanWireshark && itemName != "wireshark" && HollowZeroCore.CurrentLayer >= 10)
+            } else if(!CanWireshark && itemName != "wireshark" && CurrentLayer >= 10)
             {
                 badIdea();
             } else
@@ -78,7 +78,7 @@ namespace HollowZero.Daemons.Shop
                     var userProgram = GetProgramByName(program.Key);
                     AddProgramToPlayerPC(userProgram.DisplayName, userProgram.FileContent);
                     int infectionLevelRise = (int)Math.Floor(program.Value * 0.1f);
-                    HollowZeroCore.IncreaseInfection(infectionLevelRise, true);
+                    IncreaseInfection(infectionLevelRise, true);
                     ItemsForSale.Remove(program.Key);
                     hasBeenRobbed = true;
                     os.write($"<!*!> You snatch the program, but set off the alarm. +{infectionLevelRise} Infection.");
@@ -95,7 +95,7 @@ namespace HollowZero.Daemons.Shop
                         AddProgramToPlayerPC(program.DisplayName, program.FileContent);
                     }
                     int infectionLevelRise = (int)Math.Floor(CurrentBundleForSale.Price * 0.1f);
-                    HollowZeroCore.IncreaseInfection(infectionLevelRise, true);
+                    IncreaseInfection(infectionLevelRise, true);
                     CurrentBundleForSale = null;
                     hasBeenRobbed = true;
                     os.write($"<!*!> As you load the programs onto your PC, you set off the alarm. +{infectionLevelRise} Infection.");
@@ -209,7 +209,7 @@ namespace HollowZero.Daemons.Shop
 
             Random random = new Random();
             int chance = random.Next(0, 100);
-            if (chance > (100 * (HollowZeroCore.CurrentLayer % 5)) - 15 && ProgramBundles.Any())
+            if (chance > (100 * (CurrentLayer % 5)) - 15 && ProgramBundles.Any())
             {
                 HollowBundle bundle;
                 if (!CanDecrypt)
@@ -332,7 +332,7 @@ namespace HollowZero.Daemons.Shop
                 SPECIAL_BUTTON_HEIGHT,
                 $"{CurrentBundleForSale.ID} Bundle (FEATURED) - ${CurrentBundleForSale.Price}\n{programsInBundle}",
                 OS.currentInstance.brightUnlockedColor);
-                if (CurrentBundleForSale.Price > HollowZeroCore.PlayerCredits)
+                if (CurrentBundleForSale.Price > PlayerCredits)
                 {
                     BundleButton.Disabled = true;
                     BundleButton.DisabledMessage = "<!> You don't have enough credits for this bundle!";
@@ -406,7 +406,7 @@ namespace HollowZero.Daemons.Shop
                 {
                     PurchaseProgram(program.DisplayName, cost);
                 };
-                if (cost > HollowZeroCore.PlayerCredits)
+                if (cost > PlayerCredits)
                 {
                     ItemButton.Disabled = true;
                     ItemButton.DisabledMessage = "<!> You don't have enough credits for that!";
@@ -433,7 +433,7 @@ namespace HollowZero.Daemons.Shop
             OS.currentInstance.warningFlash();
             OS.currentInstance.write("--- PURCHASE CONFIRMED ---");
             OS.currentInstance.write($"Thank you for your purchase of {programName}!");
-            OS.currentInstance.write($"New Credits Balance: ${HollowZeroCore.PlayerCredits}");
+            OS.currentInstance.write($"New Credits Balance: ${PlayerCredits}");
 
             AddProgramToPlayerPC(programName, program.FileContent);
         }
@@ -459,7 +459,7 @@ namespace HollowZero.Daemons.Shop
             OS.currentInstance.warningFlash();
             OS.currentInstance.write("--- PURCHASE CONFIRMED ---");
             OS.currentInstance.write($"Thank you for your purchase of the {bundle.ID} Bundle!");
-            OS.currentInstance.write($"New Credits Balance: ${HollowZeroCore.PlayerCredits}");
+            OS.currentInstance.write($"New Credits Balance: ${PlayerCredits}");
         }
 
         private bool CheckForItemFile()

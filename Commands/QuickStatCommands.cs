@@ -1,7 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
+
 using Hacknet;
+
+using HollowZero.Managers;
 
 namespace HollowZero.Commands
 {
@@ -23,7 +26,7 @@ namespace HollowZero.Commands
 
         public static void ShowInfection(OS os, string[] args)
         {
-            WriteToTerminal($"[!] CURRENT INFECTION LEVEL: {HollowZeroCore.InfectionLevel} / MALWARE COUNT: {HollowZeroCore.CollectedMalware.Count}");
+            WriteToTerminal($"[!] CURRENT INFECTION LEVEL: {PlayerManager.InfectionLevel} / MALWARE COUNT: {HollowZeroCore.CollectedMalware.Count}");
         }
 
         public static void ListMalware(OS os, string[] args)
@@ -49,10 +52,10 @@ namespace HollowZero.Commands
             StringBuilder message = new StringBuilder(TERM_SEPERATOR);
             message.Append("\n");
 
-            message.Append($"CURRENT INFECTION: {HollowZeroCore.InfectionLevel}%\n");
+            message.Append($"CURRENT INFECTION: {PlayerManager.InfectionLevel}%\n");
             message.Append($"MODIFICATION COUNT: {HollowZeroCore.CollectedMods.Count}\n");
             message.Append($"CORRUPTION COUNT: {HollowZeroCore.CollectedCorruptions.Count}\n");
-            message.Append($"CREDITS: ${HollowZeroCore.PlayerCredits}\n");
+            message.Append($"CREDITS: ${PlayerManager.PlayerCredits}\n");
 
             message.Append(TERM_SEPERATOR);
             WriteToTerminal(message.ToString());

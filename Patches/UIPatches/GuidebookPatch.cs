@@ -10,6 +10,7 @@ using HarmonyLib;
 using Pathfinder.GUI;
 
 using HollowZero.Daemons;
+using HollowZero.Managers;
 
 namespace HollowZero.Patches
 {

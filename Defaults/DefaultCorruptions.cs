@@ -1,6 +1,7 @@
 ﻿using Hacknet;
 
 using HollowZero.Patches;
+using HollowZero.Managers;
 
 using System;
 using System.Collections.Generic;
@@ -329,7 +330,7 @@ namespace HollowZero
                             OS.currentInstance.delayer.Post(ActionDelayer.Wait(0.1), Warn);
                             OS.currentInstance.delayer.Post(ActionDelayer.Wait(0.2), Warn);
                             OS.currentInstance.terminal.writeLine("<!> MAJOR MALFUNCTION :: MAJOR MALFUNCTION <!>");
-                            HollowManager.ForkbombComputer(OS.currentInstance.thisComputer);
+                            GameplayManager.ForkbombComputer(OS.currentInstance.thisComputer);
                         };
 
                         HollowTimer.AddTimer("majormalfunction_3", 2.0f, countdown3);

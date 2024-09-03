@@ -1,4 +1,5 @@
 ﻿using Hacknet;
+using HollowZero.Managers;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Pathfinder.GUI;
@@ -78,7 +79,7 @@ namespace HollowZero.Daemons.Shop
             {
                 modButton.Text = $"Get Random Modification! (${Cost})\n(Remaining Chances: {RemainingModifications}";
                 modButton.Color = OS.currentInstance.brightUnlockedColor;
-                if(HollowZeroCore.PlayerCredits < Cost)
+                if(PlayerManager.PlayerCredits < Cost)
                 {
                     modButton.Disabled = true;
                     modButton.DisabledMessage = "<!> You don't have enough credits for that!";
@@ -88,7 +89,7 @@ namespace HollowZero.Daemons.Shop
                     switch(GetModification(out var mod, out var cor))
                     {
                         case true:
-                            HollowZeroCore.AddModification(mod);
+                            InventoryManager.AddModification(mod);
                             OS.currentInstance.terminal.writeLine("< :) > GREAT LUCK! " +
                                 $"You got the Modifcation: {mod.DisplayName}");
                             if(OS.DEBUG_COMMANDS)
@@ -99,7 +100,7 @@ namespace HollowZero.Daemons.Shop
                             Chance -= 15;
                             break;
                         case false:
-                            HollowZeroCore.AddCorruption(cor);
+                            InventoryManager.AddCorruption(cor);
                             OS.currentInstance.terminal.writeLine("< :( > BAD LUCK! " +
                                 $"You got the Corruption: {cor.DisplayName}");
                             if (OS.DEBUG_COMMANDS)
@@ -125,7 +126,7 @@ namespace HollowZero.Daemons.Shop
                 $"Get Mod. Upgrade (${(int)(Cost * 1.5f)})", Color.White);
             if(RemainingUpgrades > 0)
             {
-                if (HollowZeroCore.PlayerCredits < (int)(Cost * 1.5f))
+                if (PlayerManager.PlayerCredits < (int)(Cost * 1.5f))
                 {
                     upgradeButton.Disabled = true;
                     upgradeButton.DisabledMessage = "<!> You don't have enough credits for that!";
@@ -193,7 +194,7 @@ namespace HollowZero.Daemons.Shop
                 if(OS.DEBUG_COMMANDS) {
                     OS.currentInstance.terminal.writeLine($"Upgrading {m.DisplayName} | {m.Description}");
                 }
-                HollowZeroCore.UpgradeModification(m);
+                InventoryManager.UpgradeModification(m);
                 if (OS.DEBUG_COMMANDS)
                 {
                     OS.currentInstance.terminal.writeLine($"Upgraded {m.DisplayName} | {m.Description}");
@@ -201,7 +202,7 @@ namespace HollowZero.Daemons.Shop
             } else if(HollowZeroCore.CollectedCorruptions.Any(c => !c.Upgraded))
             {
                 var c = HollowZeroCore.CollectedCorruptions.Where(c => !c.Upgraded).GetRandom();
-                HollowZeroCore.UpgradeCorruption(c);
+                InventoryManager.UpgradeCorruption(c);
             }
         }
 

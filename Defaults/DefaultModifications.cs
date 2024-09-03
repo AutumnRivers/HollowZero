@@ -7,6 +7,8 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 
+using HollowZero.Managers;
+
 namespace HollowZero
 {
     public static class DefaultModifications
@@ -281,7 +283,7 @@ namespace HollowZero
                 {
                     if (infectionLevel > 95)
                     {
-                        HollowZeroCore.InfectionLevel = 95;
+                        PlayerManager.InfectionLevel = 95;
                     }
                     LogCSECMessage();
                     Discard();
@@ -302,7 +304,7 @@ namespace HollowZero
                 Description = "Protects you from gaining Malware (1) time before discarding itself, and clears your Infection.";
                 AltEffect = delegate (int _)
                 {
-                    HollowZeroCore.ClearInfection();
+                    PlayerManager.ClearInfection();
                     LogCSECMessage();
                     Discard();
                 };

@@ -6,6 +6,7 @@ using Hacknet.Gui;
 using Microsoft.Xna.Framework;
 
 using HollowZero.Daemons;
+using HollowZero.Managers;
 
 namespace HollowZero.Patches
 {
@@ -93,7 +94,7 @@ namespace HollowZero.Patches
             }
 
             // Section 2 - Infection Level
-            int infection = HollowZeroCore.InfectionLevel;
+            int infection = PlayerManager.InfectionLevel;
             Color meterColor = infection < 50 ? Color.Lerp(LowColor, MedColor, (float)infection / 50) :
                 Color.Lerp(MedColor, HighColor, ((float)infection - 50) / 50);
             Rectangle meterBox = new Rectangle()

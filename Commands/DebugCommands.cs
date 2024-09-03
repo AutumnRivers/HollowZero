@@ -7,8 +7,10 @@ using System.Text;
 using Hacknet;
 
 using HollowZero.Nodes.LayerSystem;
+using HollowZero.Managers;
 
 using static HollowZero.HollowLogger;
+using static HollowZero.Managers.HollowGlobalManager;
 
 namespace HollowZero.Commands
 {
@@ -55,7 +57,7 @@ namespace HollowZero.Commands
 
             int amount = int.Parse(args[1]);
 
-            HollowZeroCore.IncreaseInfection(amount);
+            PlayerManager.IncreaseInfection(amount);
         }
 
         public static void DecreaseInfection(OS os, string[] args)
@@ -75,7 +77,7 @@ namespace HollowZero.Commands
 
             int amount = int.Parse(args[1]);
 
-            HollowZeroCore.DecreaseInfection(amount);
+            PlayerManager.DecreaseInfection(amount);
         }
 
         public static void AddRandomMalware(OS os, string[] args)
@@ -86,7 +88,7 @@ namespace HollowZero.Commands
                 return;
             }
 
-            HollowZeroCore.AddMalware();
+            InventoryManager.AddMalware();
         }
 
         public static void ClearMalware(OS os, string[] args)
@@ -99,7 +101,7 @@ namespace HollowZero.Commands
 
             foreach(var mal in HollowZeroCore.CollectedMalware.ToArray())
             {
-                HollowZeroCore.RemoveMalware(mal);
+                InventoryManager.RemoveMalware(mal);
             }
         }
 
@@ -118,7 +120,7 @@ namespace HollowZero.Commands
                 return;
             }
 
-            HollowZeroCore.AddPlayerCredits(int.Parse(args[1]));
+            PlayerManager.AddPlayerCredits(int.Parse(args[1]));
         }
 
         public static void RemoveCredits(OS os, string[] args)
@@ -138,10 +140,10 @@ namespace HollowZero.Commands
 
             if (args[1] == "all")
             {
-                HollowZeroCore.RemovePlayerCredits(10000);
+                PlayerManager.RemovePlayerCredits(10000);
             } else
             {
-                HollowZeroCore.RemovePlayerCredits(int.Parse(args[1]));
+                PlayerManager.RemovePlayerCredits(int.Parse(args[1]));
             }
         }
 
@@ -150,14 +152,14 @@ namespace HollowZero.Commands
             if(args.Length < 2)
             {
                 os.write("alright buddy ol pal im gonna assume you want a random modification");
-                HollowZeroCore.AddModification();
+                InventoryManager.AddModification();
                 return;
             }
 
-            if(HollowZeroCore.PossibleModifications.TryFind(m => m.ID.ToLower() == args[1].ToLower(), out var mod))
+            if(PossibleModifications.TryFind(m => m.ID.ToLower() == args[1].ToLower(), out var mod))
             {
                 os.write($"Adding Modficiation with ID of {mod.ID}...");
-                HollowZeroCore.AddModification(mod);
+                InventoryManager.AddModification(mod);
             } else
             {
                 os.write("what the heckarino. there's no modification with that id. terrible fortune, ancestor cry");
@@ -179,7 +181,7 @@ namespace HollowZero.Commands
 
             var rMod = mod.GetRandom();
             os.write($"Upgrading {rMod.DisplayName}...");
-            HollowZeroCore.UpgradeModification();
+            InventoryManager.UpgradeModification();
         }
 
         public static void AddCorruption(OS os, string[] args)
@@ -187,14 +189,14 @@ namespace HollowZero.Commands
             if (args.Length < 2)
             {
                 os.write("alright buddy ol pal im gonna assume you want a random corruption");
-                HollowZeroCore.AddCorruption();
+                InventoryManager.AddCorruption();
                 return;
             }
 
-            if (HollowZeroCore.PossibleCorruptions.TryFind(m => m.ID.ToLower() == args[1].ToLower(), out var cor))
+            if (PossibleCorruptions.TryFind(m => m.ID.ToLower() == args[1].ToLower(), out var cor))
             {
                 os.write($"Adding Corruption with ID of {cor.ID}...");
-                HollowZeroCore.AddCorruption(cor);
+                InventoryManager.AddCorruption(cor);
             }
             else
             {

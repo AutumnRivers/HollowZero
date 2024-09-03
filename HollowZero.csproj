@@ -81,7 +81,6 @@
     <Compile Include="Commands\QuickStatCommands.cs" />
     <Compile Include="Commands\RobCommand.cs" />
     <Compile Include="Daemons\Event\ChoiceEventDaemon.cs" />
-    <Compile Include="Daemons\Event\Choices\TestChoiceEvents.cs" />
     <Compile Include="Daemons\Event\DialogueEventDaemon.cs" />
     <Compile Include="Daemons\Event\EventDaemon.cs" />
     <Compile Include="Daemons\Event\UnavEventDaemon.cs" />
@@ -103,6 +102,13 @@
     <Compile Include="Extensions\XDocumentExtensions.cs" />
     <Compile Include="HollowPack.cs" />
     <Compile Include="HollowZeroCore.cs" />
+    <Compile Include="Managers\GameplayManager.cs" />
+    <Compile Include="Managers\GlobalManager.cs" />
+    <Compile Include="Managers\InventoryManager.cs" />
+    <Compile Include="Managers\PathfinderManager.cs" />
+    <Compile Include="Managers\PlayerManager.cs" />
+    <Compile Include="Modifiers\Malware.cs" />
+    <Compile Include="Modifiers\Modification.cs" />
     <Compile Include="Nodes\LayerSystem\HollowLayer.cs" />
     <Compile Include="Nodes\LayerSystem\LayerGenerator.cs" />
     <Compile Include="Nodes\NodeGenerator.cs" />
@@ -124,6 +130,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Actions\" />
+    <Folder Include="Daemons\Event\Choices\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

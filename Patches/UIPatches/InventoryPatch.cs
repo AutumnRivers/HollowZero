@@ -8,6 +8,7 @@ using Hacknet.UIUtils;
 using HarmonyLib;
 
 using HollowZero.Daemons;
+using HollowZero.Managers;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -143,7 +144,7 @@ namespace HollowZero.Patches
             }
 
             RenderedRectangle.doRectangle(tab.X, tab.Y, tab.Width, tab.Height, tabBackingColor);
-            HollowManager.DrawTrueCenteredText(tab, Enum.GetName(typeof(TabCategories), category),
+            GameplayManager.DrawTrueCenteredText(tab, Enum.GetName(typeof(TabCategories), category),
                 TabFont, active ? ActiveTabTextColor : InactiveTabTextColor);
 
             RenderedRectangle.doRectangle(tab.X, tab.Y + tab.Height - (BOX_OUTLINE_THICKNESS + 2), tab.Width,
@@ -315,7 +316,7 @@ namespace HollowZero.Patches
                 RenderedRectangle.doRectangleOutline(bounds.X + xOffset, bounds.Y, malwareBoxWidth, malwareBoxHeight,
                     1, isMalware ? MalwareColor : BoxColor);
 
-                HollowManager.DrawTrueCenteredText(malwareBox, isMalware ? "!!" : "...", GuiData.titlefont,
+                GameplayManager.DrawTrueCenteredText(malwareBox, isMalware ? "!!" : "...", GuiData.titlefont,
                     isMalware ? Color.Red : Color.White);
 
                 xOffset += malwareBoxWidth;

@@ -17,6 +17,7 @@ using Stuxnet_HN;
 using Stuxnet_HN.Patches;
 using Stuxnet_HN.Executables;
 using HollowZero.Daemons.Shop;
+using HollowZero.Managers;
 
 namespace HollowZero.Nodes.LayerSystem
 {
@@ -198,7 +199,7 @@ namespace HollowZero.Nodes.LayerSystem
                 {
                     genComp = NodeGenerator.GenerateEventComputer($"TestComp{i + 1}");
                 }
-                if(HollowZeroCore.CurrentLayer % 5 == 0 && firstNode)
+                if(PlayerManager.CurrentLayer % 5 == 0 && firstNode)
                 {
                     genComp = NodeGenerator.GenerateProgramShopComp();
                 }

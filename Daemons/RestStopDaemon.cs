@@ -1,5 +1,6 @@
 ﻿using Hacknet;
 using Hacknet.Effects;
+using HollowZero.Managers;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Pathfinder.GUI;
@@ -48,7 +49,7 @@ namespace HollowZero.Daemons
                 bounds.Width / 2, 50, "Take a rest (-25 Infection)", Color.Blue);
             RestButton.OnPressed = delegate ()
             {
-                HollowZeroCore.DecreaseInfection(25);
+                PlayerManager.DecreaseInfection(25);
                 PFButton.ReturnID(RestButtonID);
                 RemoveDaemon();
             };

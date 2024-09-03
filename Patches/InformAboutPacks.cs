@@ -16,46 +16,13 @@ using Pathfinder.GUI;
 using Microsoft.Xna.Framework;
 
 using HollowZero.Daemons;
+using HollowZero.Managers;
 
 namespace HollowZero.Patches
 {
     [HarmonyPatch]
     public class InformAboutPacks
     {
-        /*[HarmonyILManipulator]
-        [HarmonyPatch(typeof(SavefileLoginScreen),"Draw")]
-        public static void ShowWarningForHollowPacks(ILContext il, SavefileLoginScreen __instance, MethodBase original)
-        {
-            ILCursor c = new ILCursor(il);
-
-            Action action = () =>
-            {
-                
-            };
-
-            c.GotoNext(MoveType.After,
-                abc => abc.MatchNop(),
-                abc => abc.MatchLdarg(0),
-                abc => abc.MatchLdfld(out var _),
-                abc => abc.MatchLdcI4(0),
-                abc => abc.MatchCallvirt(out var _),
-                abc => abc.MatchStloc(18),
-                abc => abc.MatchLdarg(0),
-                abc => abc.MatchLdfld(out var _),
-                abc => abc.MatchLdcI4(1),
-                abc => abc.MatchCallvirt(out var _),
-                abc => abc.MatchStloc(19),
-                abc => abc.MatchLdcI4(0),
-                abc => abc.MatchStsfld(out var _),
-                abc => abc.MatchLdarg(0),
-                abc => abc.MatchLdfld(out var _)
-                );
-            c.GotoPrev().GotoPrev().Remove();
-            c.Emit(OpCodes.Ldloc_S, 18);
-            c.Emit(OpCodes.Ldloc_S, 19);
-            c.EmitDelegate(action);
-        }*/
-
         private static Action<string,string> PatchedStartNewGameAction;
         private static bool needsConfirmation = false;
 

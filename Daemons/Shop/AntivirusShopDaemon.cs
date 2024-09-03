@@ -1,5 +1,6 @@
 ﻿using Hacknet;
 using Hacknet.Gui;
+using HollowZero.Managers;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Pathfinder.GUI;
@@ -332,7 +333,7 @@ namespace HollowZero.Daemons.Shop
 
             HollowButton removeMalwareButton = new(ButtonIDs[2], buttonX, bounds.Center.Y + 25,
                 buttonWidth, 50, $"Remove Malware (${malwareCost})", Color.Red);
-            if (HollowZeroCore.PlayerCredits < malwareCost)
+            if (PlayerManager.PlayerCredits < malwareCost)
             {
                 removeMalwareButton.Disabled = true;
                 removeMalwareButton.DisabledMessage = "<!> You don't have enough credits for that!";
@@ -349,8 +350,8 @@ namespace HollowZero.Daemons.Shop
             }
             removeMalwareButton.OnPressed = delegate ()
             {
-                HollowZeroCore.RemovePlayerCredits(malwareCost);
-                HollowZeroCore.RemoveMalware(HollowZeroCore.CollectedMalware[0]);
+                PlayerManager.RemovePlayerCredits(malwareCost);
+                InventoryManager.RemoveMalware(HollowZeroCore.CollectedMalware[0]);
                 ShopMessage = shopResponses[1];
                 malwareRemovalsPurchased++;
             };
@@ -358,11 +359,11 @@ namespace HollowZero.Daemons.Shop
 
             HollowButton lowerInfectionButton = new(ButtonIDs[3], buttonX, bounds.Center.Y + 25 + 50 + 10,
                 buttonWidth, 50, $"Lower Infection by {LOWER_INFECTION_BY}% (${infecCost})", Color.DarkRed);
-            if (HollowZeroCore.PlayerCredits < infecCost)
+            if (PlayerManager.PlayerCredits < infecCost)
             {
                 lowerInfectionButton.Disabled = true;
                 lowerInfectionButton.DisabledMessage = "<!> You don't have enough credits for that!";
-            } else if(HollowZeroCore.InfectionLevel == 0)
+            } else if(PlayerManager.InfectionLevel == 0)
             {
                 lowerInfectionButton.Disabled = true;
                 lowerInfectionButton.DisabledMessage = "<...> Your infection level is already at 0%...";
@@ -375,8 +376,8 @@ namespace HollowZero.Daemons.Shop
             }
             lowerInfectionButton.OnPressed = delegate ()
             {
-                HollowZeroCore.RemovePlayerCredits(infecCost);
-                HollowZeroCore.DecreaseInfection(LOWER_INFECTION_BY);
+                PlayerManager.RemovePlayerCredits(infecCost);
+                PlayerManager.DecreaseInfection(LOWER_INFECTION_BY);
                 ShopMessage = shopResponses[0];
                 infectionDecreasesPurchased++;
             };
@@ -448,7 +449,7 @@ namespace HollowZero.Daemons.Shop
             {
                 removeCorrButton.Disabled = true;
                 removeCorrButton.DisabledMessage = "<...> You don't have any corruptions to remove.";
-            } else if(HollowZeroCore.PlayerCredits < corrRemovalCost)
+            } else if(PlayerManager.PlayerCredits < corrRemovalCost)
             {
                 removeCorrButton.Disabled = true;
                 removeCorrButton.DisabledMessage = "<!> You don't have enough credits for that!";
@@ -470,7 +471,7 @@ namespace HollowZero.Daemons.Shop
                     if(HollowZeroCore.CollectedCorruptions.Any(c => !c.Upgraded))
                     {
                         var corr = HollowZeroCore.CollectedCorruptions.Where(c => !c.Upgraded).GetRandom();
-                        HollowZeroCore.UpgradeCorruption(corr);
+                        InventoryManager.UpgradeCorruption(corr);
                     }
                     CorrRemovalMessage = corrResponses[1];
                     failFlash = true;
@@ -480,7 +481,7 @@ namespace HollowZero.Daemons.Shop
                     CorrRemovalMessage = corrResponses[0];
                 }
 
-                HollowZeroCore.RemovePlayerCredits(corrRemovalCost);
+                PlayerManager.RemovePlayerCredits(corrRemovalCost);
                 UpgradeCorruptionChance += 15;
                 corruptionRemovalsPurchased++;
             };

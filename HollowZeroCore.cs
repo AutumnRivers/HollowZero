@@ -10,35 +10,34 @@ using BepInEx.Hacknet;
 using Hacknet;
 using Hacknet.Extensions;
 using Hacknet.Gui;
-using Hacknet.Effects;
 
 using Pathfinder.Daemon;
 
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 
 using Newtonsoft.Json;
 
 using HollowZero.Daemons;
 using HollowZero.Daemons.Event;
-using HollowZero.Daemons.Shop;
+
 using HollowZero.Commands;
+
 using HollowZero.Packs;
+
 using HollowZero.Patches;
+using HollowZero.Managers;
 
 using Pathfinder.Event.Loading;
 using Pathfinder.Event.Gameplay;
 using Pathfinder.Event;
 using Pathfinder.Command;
 
-using Mono.Cecil;
 using MonoMod.Utils;
+
 using BepInEx.Logging;
 
 using static HollowZero.HollowLogger;
-
-using static HollowZero.Nodes.LayerSystem.LayerGenerator;
-using HollowZero.Nodes;
+using static HollowZero.Managers.HollowGlobalManager;
 
 namespace HollowZero
 {
@@ -57,54 +56,17 @@ namespace HollowZero
 
         public const int MAX_MALWARE = 4;
 
-        private static List<Malware> possibleMalware = new List<Malware>();
-        private static List<Modification> possibleMods = new List<Modification>();
-        private static List<Corruption> possibleCorruptions = new List<Corruption>();
+        internal static List<Malware> CollectedMalware { get; set; } = new();
+        internal static List<Modification> CollectedMods { get; set; } = new();
+        internal static List<Corruption> CollectedCorruptions { get; set; } = new();
 
-        internal static List<Malware> CollectedMalware { get; set; }
-        internal static List<Modification> CollectedMods { get; set; }
-        internal static List<Corruption> CollectedCorruptions { get; set; }
-
-        private static List<string> seenEvents = new List<string>();
-        public static List<string> SeenEvents
-        {
-            get
-            {
-                return seenEvents;
-            }
-            internal set
-            {
-                seenEvents = value;
-            }
-        }
-
-        public static List<Malware> PossibleMalware
-        {
-            get { return possibleMalware; }
-            internal set { possibleMalware = value; }
-        }
-
-        public static List<Modification> PossibleModifications
-        {
-            get { return possibleMods; }
-            internal set { possibleMods = value; }
-        }
-
-        public static List<Corruption> PossibleCorruptions
-        {
-            get { return possibleCorruptions; }
-            internal set { possibleCorruptions = value; }
-        }
-
-        public static int InfectionLevel { get; internal set; }
-        public static uint PlayerCredits { get; internal set; }
-        public static int CurrentLayer { get; internal set; } = 1;
+        public static List<string> SeenEvents { get; internal set; } = new();
 
         public static bool ShowInfecTracker = true;
 
-        internal static Dictionary<string, string> knownPacks = new Dictionary<string, string>();
-        internal static List<Assembly> knownPackAsms = new List<Assembly>();
-        internal static Dictionary<string, string> loadedPacks = new Dictionary<string, string>();
+        internal static Dictionary<string, string> knownPacks = new();
+        internal static List<Assembly> knownPackAsms = new();
+        internal static Dictionary<string, string> loadedPacks = new();
 
         internal enum UIState
         {
@@ -121,12 +83,8 @@ namespace HollowZero
         {
             HollowLogSource = Log;
 
-            CollectedMalware = new List<Malware>();
-            CollectedMods = new List<Modification>();
-            CollectedCorruptions = new List<Corruption>();
-
-            InfectionLevel = 0;
-            PlayerCredits = 0;
+            PlayerManager.InfectionLevel = 0;
+            PlayerManager.PlayerCredits = 0;
 
             HZLog("Initializing...");
             HarmonyInstance.PatchAll(typeof(HollowZeroCore).Assembly);
@@ -471,7 +429,7 @@ namespace HollowZero
             }
         }
 
-        private static void Overload(int newInfection, bool overflow)
+        internal static void Overload(int newInfection, bool overflow)
         {
             foreach (var mod in CollectedMods.Where(m => m.Trigger == Modification.ModTriggers.OnOverload))
             {
@@ -490,7 +448,7 @@ namespace HollowZero
                 }
             }
 
-            InfectionLevel = overflow ? newInfection - 100 : 0;
+            PlayerManager.InfectionLevel = overflow ? newInfection - 100 : 0;
 
             OS os = OS.currentInstance;
             os.IncConnectionOverlay.sound1.Play();
@@ -531,211 +489,9 @@ namespace HollowZero
                     break;
                 case 3:
                     CustomEffects.ResetEffect();
-                    AddMalware();
+                    InventoryManager.AddMalware();
                     break;
             }
-        }
-
-        public static void IncreaseInfection(int amount, bool overflow = false)
-        {
-            foreach(var mod in CollectedMods.Where(m => m.Trigger == Modification.ModTriggers.OnInfectionGain))
-            {
-                if(mod.IsBlocker && mod.ChanceEffect != null)
-                {
-                    if (mod.ChanceEffect(OS.currentInstance.thisComputer)) return;
-                } else if(mod.IsBlocker)
-                {
-                    mod.LaunchEffect(OS.currentInstance.thisComputer, amount);
-                    return;
-                } else
-                {
-                    mod.LaunchEffect(OS.currentInstance.thisComputer, amount);
-                }
-            }
-
-            if(InfectionLevel + amount >= 100)
-            {
-                Overload(InfectionLevel + amount, overflow);
-            } else
-            {
-                InfectionLevel += amount;
-            }
-        }
-
-        public static void DecreaseInfection(int amount)
-        {
-            if(InfectionLevel - amount <= 0)
-            {
-                InfectionLevel = 0;
-            } else
-            {
-                InfectionLevel -= amount;
-            }
-        }
-
-        public static void ClearInfection()
-        {
-            InfectionLevel = 0;
-        }
-
-        public static void AddPlayerCredits(int amount)
-        {
-            if(PlayerCredits + amount > 9999)
-            {
-                PlayerCredits = 9999;
-            } else
-            {
-                PlayerCredits += (uint)amount;
-            }
-        }
-
-        public static bool RemovePlayerCredits(int amount)
-        {
-            if(PlayerCredits - amount < 0)
-            {
-                return false;
-            } else
-            {
-                PlayerCredits -= (uint)amount;
-                return true;
-            }
-        }
-
-        public static void AddMalware(Malware malware = null)
-        {
-            foreach(var mod in CollectedMods.Where(m => m.Trigger == Modification.ModTriggers.OnOverload))
-            {
-                if(mod.IsBlocker && mod.ChanceEffect != null)
-                {
-                    if (mod.ChanceEffect(OS.currentInstance.thisComputer)) return;
-                } else if(mod.IsBlocker)
-                {
-                    mod.LaunchEffect(OS.currentInstance.thisComputer, InfectionLevel);
-                    return;
-                } else
-                {
-                    mod.LaunchEffect(OS.currentInstance.thisComputer, InfectionLevel);
-                }
-            }
-
-            Malware GetMalware()
-            {
-                Malware m = GetRandomMalware();
-                if(CollectedMalware.Contains(m))
-                {
-                    return GetMalware();
-                }
-                return m;
-            }
-
-            malware ??= GetMalware();
-
-            CollectedMalware.Add(malware);
-            if(malware.SetTimer)
-            {
-                MalwareEffects.AddMalwareTimer(malware, malware.PowerLevel);
-            }
-
-            MalwareOverlay.CurrentMalware = malware;
-        }
-
-        public static void RemoveMalware(Malware malware = null)
-        {
-            malware ??= CollectedMalware.GetRandom();
-
-            List<Computer> affectedComps = new List<Computer>();
-            if(MalwareEffects.AffectedComps.Exists(c => c.AppliedEffects.Contains(malware.DisplayName)))
-            {
-                foreach (var comp in MalwareEffects.AffectedComps.Where(c => c.AppliedEffects.Contains(malware.DisplayName)))
-                {
-                    comp.AppliedEffects.Remove(malware.DisplayName);
-                    var affectedComp = OS.currentInstance.netMap.nodes.First(c => c.idName == comp.CompID);
-                    affectedComps.Add(affectedComp);
-                }
-            }
-
-            if(malware.RemoveAction != null)
-            {
-                malware.RemoveAction(malware.PowerLevel, affectedComps);
-            }
-            CollectedMalware.Remove(malware);
-        }
-
-        public static void AddModification(Modification mod = null)
-        {
-            if (CollectedMods.Any(m => m.ID == mod?.ID)) return;
-
-            Modification GetModification()
-            {
-                var modf = PossibleModifications.GetRandom();
-                if (CollectedMods.Any(m => m.ID == modf.ID)) return GetModification();
-                return modf;
-            }
-
-            var modification = mod ??= GetModification();
-
-            CollectedMods.Add(modification);
-            if(modification.Trigger == Modification.ModTriggers.None)
-            {
-                modification.Effect(null);
-            }
-        }
-
-        public static void UpgradeModification(Modification mod = null)
-        {
-            if (mod == null && !CollectedMods.Any(m => !m.Upgraded)) return;
-            var modf = mod ??= CollectedMods.Where(m => !m.Upgraded).GetRandom();
-
-            if(CollectedMods.TryFind(m => m.ID == modf.ID, out var modification))
-            {
-                int index = CollectedMods.IndexOf(modification);
-                CollectedMods[index].Upgrade();
-            } else
-            {
-                modf.Upgrade();
-                CollectedMods.Add(modf);
-            }
-        }
-
-        public static void AddCorruption(Corruption corruption = null)
-        {
-            if (CollectedCorruptions.Any(c => c.ID == corruption?.ID)) return;
-
-            Corruption GetCorruption()
-            {
-                var cor = DefaultCorruptions.Corruptions.GetRandom();
-                if (CollectedCorruptions.Any(c => c.ID == cor.ID)) return GetCorruption();
-                return cor;
-            }
-
-            var corr = corruption ??= GetCorruption();
-
-            CollectedCorruptions.Add(corr);
-            if(corr.Trigger == Modification.ModTriggers.None)
-            {
-                corr.CorruptionEffect();
-            }
-        }
-
-        public static void RemoveCorruption(Corruption corruption)
-        {
-            if (!CollectedCorruptions.Any(c => c.ID == corruption?.ID)) return;
-
-            corruption.Discard();
-        }
-
-        public static void UpgradeCorruption(Corruption corruption)
-        {
-            if(CollectedCorruptions.TryFind(c => c.ID == corruption.ID, out var corr))
-            {
-                int index = CollectedCorruptions.IndexOf(corr);
-                CollectedCorruptions[index].Upgrade();
-            }
-        }
-
-        public static Malware GetRandomMalware()
-        {
-            return PossibleMalware.GetRandom();
         }
     }
 
@@ -753,212 +509,6 @@ namespace HollowZero
         {
             if (!OS.DEBUG_COMMANDS && onlyIfDebugModeIsEnabled) return;
             HollowLogSource.LogDebug(msg);
-        }
-    }
-
-    public static class PlayerManager
-    {
-        private static bool hasDecypher = false;
-        private static bool hasDecHead = false;
-
-        private static bool hasMemGen = false;
-        private static bool hasMemForen = false;
-
-        private static readonly string[] decData = new string[]
-        {
-            ShopDaemon.GetExeDataByName("Decypher"),
-            ShopDaemon.GetExeDataByName("DECHead")
-        };
-
-        private static readonly string[] memData = new string[]
-        {
-            ShopDaemon.GetExeDataByName("MemDumpGenerator"),
-            ShopDaemon.GetExeDataByName("MemForensics")
-        };
-
-        public static void AddProgramToPlayerPC(string programName, string programContent)
-        {
-            FileEntry programFile = new(programContent, $"{programName}.exe");
-            Folder binFolder = OS.currentInstance.thisComputer.getFolderFromPath("bin");
-
-            if (decData[0] == programContent)
-            {
-                hasDecypher = true;
-                if(hasDecHead) { CanDecrypt = true; }
-            } else if (decData[1] == programContent)
-            {
-                hasDecHead = true;
-                if(hasDecypher) { CanDecrypt = true; }
-            }
-
-            if (memData[0] == programContent)
-            {
-                hasMemGen = true;
-                if(hasMemForen) { CanMemDump = true; }
-            } else if (memData[1] == programContent)
-            {
-                hasMemForen = true;
-                if(hasMemGen) { CanMemDump = true; }
-            }
-
-            if(programContent == ComputerLoader.filter("#WIRESHARK_EXE#"))
-            {
-                CanWireshark = true;
-            }
-
-            if (binFolder.containsFileWithData(programContent)) return;
-
-            binFolder.files.Add(programFile);
-        }
-
-        internal static float layerTransitionProgress = 0.0f;
-        private static bool nodesPrepared = false;
-        private static bool warned = false;
-        private static bool alerted = false;
-
-        public const float TRANSITION_SPIN_UP_TIME = 5.0f;
-
-        private static string layerSuffix
-        {
-            get
-            {
-                int layer = HollowZeroCore.CurrentLayer;
-                string suffix = "th";
-                if (layer.ToString().EndsWith("1"))
-                {
-                    suffix = "st";
-                } else if (layer.ToString().EndsWith("2"))
-                {
-                    suffix = "nd";
-                } else if(layer.ToString().EndsWith("3"))
-                {
-                    suffix = "rd";
-                }
-                return suffix;
-            }
-        }
-
-        public static void MoveToNextLayer()
-        {
-            HollowZeroCore.CurrentLayer += 1;
-            Action changeStage = delegate ()
-            {
-                CustomEffects.CurrentStage++;
-            };
-            Action layerTransitionFX = delegate ()
-            {
-                int stage = CustomEffects.CurrentStage;
-                OS os = OS.currentInstance;
-                Rectangle screen = Utils.GetFullscreen();
-                if(layerTransitionProgress < 1.0f)
-                {
-                    addRadialLine();
-                    if(layerTransitionProgress > 0.5f)
-                    {
-                        addRadialLine();
-                    }
-                    if(layerTransitionProgress > 0.75f)
-                    {
-                        addRadialLine();
-                    }
-                    Utils.FillEverywhereExcept(os.netMap.bounds, screen, GuiData.spriteBatch, Color.Black * 0.5f);
-                    PostProcessor.EndingSequenceFlashOutActive = true;
-                    PostProcessor.EndingSequenceFlashOutPercentageComplete = 1f - layerTransitionProgress;
-                } else
-                {
-                    PostProcessor.EndingSequenceFlashOutActive = false;
-                    PostProcessor.EndingSequenceFlashOutPercentageComplete = 0f;
-                    switch(stage)
-                    {
-                        case 0:
-                            RenderedRectangle.doRectangle(screen.X, screen.Y, screen.Width, screen.Height, Color.White);
-                            if(!warned)
-                            {
-                                os.IncConnectionOverlay.sound1.Play();
-                            }
-                            HollowTimer.AddTimer("layer_transition_stage1", 2.0f, changeStage, false);
-                            break;
-                        case 1:
-                            RenderedRectangle.doRectangle(screen.X, screen.Y, screen.Width, screen.Height, Color.Black);
-                            HollowDaemon.DrawTrueCenteredText(screen, "-= CONNECTING =-", GuiData.titlefont, Color.White);
-                            HollowTimer.AddTimer("layer_transition_stage2", 3.0f, changeStage, false);
-                            if(!nodesPrepared)
-                            {
-                                nodesPrepared = true;
-                                NodeManager.ClearNetMap();
-                                // Add starting node here...
-                            }
-                            break;
-                        case 2:
-                            if(!alerted)
-                            {
-                                alerted = true;
-                                os.hubServerAlertsIcon.alertSound.Play();
-                            }
-                            CustomEffects.ResetEffect();
-                            os.delayer.Post(ActionDelayer.NextTick(), delegate ()
-                            {
-                                layerTransitionProgress = 0.0f;
-                                alerted = false;
-                                warned = false;
-                                nodesPrepared = false;
-                                sendTransitionMessages(
-                                    "-----------------------------------------",
-                                    $"You've reached the {HollowZeroCore.CurrentLayer}{layerSuffix} layer",
-                                    "-----------------------------------------"
-                                    );
-                            });
-                            break;
-                    }
-                }
-                var gameTime = OS.currentInstance.lastGameTime.ElapsedGameTime.TotalSeconds;
-                layerTransitionProgress += (float)gameTime / TRANSITION_SPIN_UP_TIME;
-            };
-            CustomEffects.ChangeEffect(layerTransitionFX, true);
-            if(HollowZeroCore.CurrentLayer % 5 == 0)
-            {
-                if(!CanDecrypt)
-                {
-                    CanDecrypt = true;
-                } else if(!CanMemDump)
-                {
-                    CanMemDump = true;
-                } else if(!CanWireshark)
-                {
-                    CanWireshark = true;
-                }
-            }
-
-            static void addRadialLine()
-            {
-                Vector2 playerPos = OS.currentInstance.thisComputer.location;
-                Vector2 netMapPos = new(OS.currentInstance.netMap.bounds.X, OS.currentInstance.netMap.bounds.Y);
-                Vector2 netMapDim = new(OS.currentInstance.netMap.bounds.Width, OS.currentInstance.netMap.bounds.Height);
-                Vector2 radPosition = new()
-                {
-                    X = netMapPos.X + (netMapDim.X * playerPos.X),
-                    Y = netMapPos.Y + (netMapDim.Y * playerPos.Y)
-                };
-                LogDebug(radPosition.ToString());
-                SFX.AddRadialLine(radPosition,
-                        Utils.randm(180f), 600f + Utils.randm(300f), 800f, 500f, 200f + Utils.randm(400f),
-                        0.35f, Color.Lerp(Utils.makeColor(100, 0, 0, byte.MaxValue), Utils.AddativeRed, Utils.randm(1f)),
-                        2f);
-            }
-
-            static void sendTransitionMessages(params string[] messages)
-            {
-                float delay = 0.1f;
-                OS.currentInstance.terminal.reset();
-                foreach(var msg in messages)
-                {
-                    OS.currentInstance.delayer.Post(ActionDelayer.Wait(delay), delegate ()
-                    {
-                        OS.currentInstance.write(msg);
-                    });
-                    delay += 0.1f;
-                }
-            }
         }
     }
 
@@ -990,261 +540,5 @@ namespace HollowZero
          * of these things to be propogated by HZConfig or Hollow Packs.
          */
         public bool disableBuiltInAssets = false;
-    }
-
-    public class Malware
-    {
-        public enum MalwareTrigger
-        {
-            EnterNode,
-            ExitNode,
-            EveryAction,
-            Persistent,
-            OneShot
-        }
-
-        public string DisplayName { get; set; }
-        public string Description { get; set; }
-        public int PowerLevel { get; set; }
-        public MalwareTrigger Trigger { get; set; }
-
-        public Action<int> PowerAction { get; set; }
-        public Action<Computer> CompAction { get; set; }
-
-        public Action<int, List<Computer>> RemoveAction { get; set; }
-
-        public bool SetTimer = false;
-    }
-
-    public class Modification
-    {
-        public Modification(string name, string id)
-        {
-            DisplayName = name;
-            ID = id;
-        }
-
-        public enum ModTriggers
-        {
-            EnterNode, ExitNode, GainAdminAccess,
-            OnForkbomb, OnOverload, OnInfectionGain,
-            OnTraceTrigger, None, Always
-        }
-
-        public string ID { get; set; }
-        public string DisplayName { get; set; }
-        public virtual string Description { get; set; }
-        public List<int> PowerLevels { get; set; }
-        public ModTriggers Trigger { get; set; }
-        public bool Upgraded = false;
-        public Modification UpgradedModification { get; set; }
-
-        public List<string> affectedCompIDs = new List<string>();
-        public virtual Action<Computer> Effect { get; set; }
-        public virtual Func<Computer, bool> ChanceEffect { get; set; }
-        public Action<int> AltEffect { get; set; }
-        public Action<float> TraceEffect { get; set; }
-
-        public bool IsBlocker = false;
-        public const bool IsCorruption = false;
-
-        public int MinimumLayer = 0;
-
-        public bool AddEffectToComp(Computer comp)
-        {
-            if (affectedCompIDs.Contains(comp.idName)) return false;
-
-            affectedCompIDs.Add(comp.idName);
-            return true;
-        }
-
-        public void OnLayerChange()
-        {
-            affectedCompIDs.Clear();
-        }
-
-        public virtual void Discard()
-        {
-            if(HollowZeroCore.CollectedMods.Contains(this))
-            {
-                HollowZeroCore.CollectedMods.Remove(this);
-            }
-        }
-
-        public virtual void Upgrade()
-        {
-            if (Upgraded) return;
-            Upgraded = true;
-        }
-
-        public void LaunchEffect(Computer comp = null, int alt = default)
-        {
-            if(Effect != null)
-            {
-                Effect(comp);
-                return;
-            }
-
-            if(AltEffect != null)
-            {
-                AltEffect(alt);
-                return;
-            }
-
-            LogError(HollowZeroCore.HZLOG_PREFIX +
-                $"Couldn't determine effect for modification with ID of {ID}");
-        }
-    }
-
-    public class Corruption : Modification
-    {
-        public Corruption(string name, string id) : base(name, id) { }
-
-        public new const bool IsCorruption = true;
-
-        public int StepsLeft = 5;
-        public List<string> visitedNodeIDs = new List<string>();
-
-        public Action CorruptionEffect { get; set; }
-
-        public override void Discard()
-        {
-            if(HollowZeroCore.CollectedCorruptions.Contains(this))
-            {
-                HollowZeroCore.CollectedCorruptions.Remove(this);
-            }
-        }
-
-        public void TakeStep()
-        {
-            if(StepsLeft-- <= 0)
-            {
-                Discard();
-            }
-        }
-    }
-
-    public static class HollowGlobalManager
-    {
-        public static Action<string,string> StartNewGameAction { get; internal set; }
-
-        public static string LastCustomThemePath { get; internal set; }
-        public static OSTheme LastOSTheme { get; internal set; }
-        public static OSTheme TargetTheme { get; internal set; } = OSTheme.HacknetBlue;
-    }
-
-    public static class HollowManager
-    {
-        public static bool ForceRegisterHollowPack(string filename, string filepath = null)
-        {
-            filepath ??= ExtensionLoader.ActiveExtensionInfo + "/Plugins/HZConfig/Packs/";
-            if(!File.Exists(filepath + filename))
-            {
-                return false;
-            }
-
-            return true;
-        }
-
-        public static void AddChoiceEvent(ChoiceEvent ev)
-        {
-            ChoiceEventDaemon.PossibleEvents.Add(ev);
-        }
-
-        public static void AddChoiceEvent(IEnumerable<ChoiceEvent> evs)
-        {
-            ChoiceEventDaemon.PossibleEvents.AddRange(evs);
-        }
-
-        public static void AddMalware(Malware malware)
-        {
-            if (HollowZeroCore.CollectedMalware.Contains(malware)) return;
-            HollowZeroCore.AddMalware(malware);
-        }
-
-        public static void AddCorruption(Corruption corruption)
-        {
-            if (HollowZeroCore.CollectedCorruptions.Any(c => c.ID == corruption.ID)) return;
-            HollowZeroCore.AddCorruption(corruption);
-        }
-
-        public static void AddModification(Modification mod)
-        {
-            if (HollowZeroCore.CollectedMods.Any(m => m.ID == mod.ID)) return;
-            HollowZeroCore.AddModification(mod);
-        }
-
-        public static void ForkbombComputer(Computer target)
-        {
-            Multiplayer.parseInputMessage($"eForkBomb {target.ip}", OS.currentInstance);
-        }
-
-        internal static void DrawTrueCenteredText(Rectangle bounds, string text, SpriteFont font, Color textColor = default)
-        {
-            textColor = textColor == default ? Color.White : textColor;
-            Vector2 textVector = font.MeasureString(text);
-            Vector2 textPosition = new Vector2(
-                (float)(bounds.X + bounds.Width / 2) - textVector.X / 2f,
-                (float)(bounds.Y + bounds.Height / 2) - textVector.Y / 2f);
-
-            GuiData.spriteBatch.DrawString(font, text, textPosition, textColor);
-        }
-
-        internal static void DrawFlickeringCenteredText(Rectangle bounds, string text, SpriteFont font, Color textColor = default)
-        {
-            textColor = textColor == default ? Color.White : textColor;
-            Vector2 textVector = font.MeasureString(text);
-            Vector2 textPosition = new Vector2(
-                (float)(bounds.X + bounds.Width / 2) - textVector.X / 2f,
-                (float)(bounds.Y + bounds.Height / 2) - textVector.Y / 2f);
-
-            Rectangle container = new Rectangle()
-            {
-                X = (int)textPosition.X,
-                Y = (int)textPosition.Y,
-                Width = (int)textVector.X,
-                Height = (int)textVector.Y
-            };
-
-            FlickeringTextEffect.DrawFlickeringText(container, text, 5f, 0.35f, font, OS.currentInstance, textColor);
-        }
-    }
-
-    public class HollowPFManager
-    {
-        public static Assembly LoadAssemblyThroughPF(string path)
-        {
-            var renamedAssemblyResolver = typeof(HacknetChainloader).Assembly.GetType("BepInEx.Hacknet.RenamedAssemblyResolver", true);
-            var chainloaderFix = typeof(HacknetChainloader).Assembly.GetType("BepInEx.Hacknet.ChainloaderFix", true);
-            var chFixRemaps = chainloaderFix.GetPrivateStaticField<Dictionary<string, Assembly>>("Remaps");
-            var chFixRemapDefs = chainloaderFix.GetPrivateStaticField<Dictionary<string, AssemblyDefinition>>("RemapDefinitions");
-
-            byte[] asmBytes;
-            string name;
-
-            var asm = AssemblyDefinition.ReadAssembly(path, new ReaderParameters()
-            {
-                AssemblyResolver = (IAssemblyResolver)Activator.CreateInstance(renamedAssemblyResolver)
-            });
-            name = asm.Name.Name;
-            asm.Name.Name = asm.Name.Name + "-" + DateTime.Now.Ticks;
-
-            using (var ms = new MemoryStream())
-            {
-                asm.Write(ms);
-                asmBytes = ms.ToArray();
-            }
-
-            var loaded = Assembly.Load(asmBytes);
-            chFixRemaps[name] = loaded;
-            chFixRemapDefs[name] = asm;
-
-            chainloaderFix.SetPrivateStaticField("Remaps", chFixRemaps);
-            chainloaderFix.SetPrivateStaticField("RemapDefinitions", chFixRemapDefs);
-
-            HollowZeroCore.knownPackAsms.Add(loaded);
-
-            return loaded;
-        }
     }
 }

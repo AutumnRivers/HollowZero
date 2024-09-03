@@ -6,10 +6,7 @@ using System.Threading.Tasks;
 
 using Hacknet;
 
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using Pathfinder.Executable;
-using Pathfinder.GUI;
+using HollowZero.Managers;
 
 namespace HollowZero.Daemons.Shop
 {
@@ -149,12 +146,12 @@ namespace HollowZero.Daemons.Shop
 
         protected bool CanPurchaseItem(int cost)
         {
-            return cost <= HollowZeroCore.PlayerCredits;
+            return cost <= PlayerManager.PlayerCredits;
         }
 
         protected bool AttemptPurchaseItem(int cost)
         {
-            return HollowZeroCore.RemovePlayerCredits(cost);
+            return PlayerManager.RemovePlayerCredits(cost);
         }
 
         protected void RemoveProgram(string programName)

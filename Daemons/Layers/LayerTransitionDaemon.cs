@@ -11,6 +11,8 @@ using Microsoft.Xna.Framework.Graphics;
 using Pathfinder.Daemon;
 using Pathfinder.GUI;
 
+using HollowZero.Managers;
+
 namespace HollowZero.Daemons
 {
     public class LayerTransitionDaemon : HollowDaemon
@@ -19,7 +21,7 @@ namespace HollowZero.Daemons
 
         public static new bool Registerable => false;
 
-        public int Layer => HollowZeroCore.CurrentLayer;
+        public int Layer => PlayerManager.CurrentLayer;
         public int TransButtonID { get; private set; }
 
         private ShiftingGridEffect gridEffect = new();
