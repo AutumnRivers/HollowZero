@@ -22,6 +22,8 @@ namespace HollowZero.Daemons
 
         public static new bool Registerable => true;
 
+        public static int ReduceInfectionBy { get; internal set; } = 25;
+
         private readonly RaindropsEffect Backdrop = new RaindropsEffect();
         private readonly int RestButtonID = PFButton.GetNextID();
 
@@ -46,10 +48,10 @@ namespace HollowZero.Daemons
             DrawCenteredText(bounds, trimmedText, GuiData.smallfont, bounds.Center.Y, Color.White);
 
             HollowButton RestButton = new HollowButton(RestButtonID, bounds.X + (bounds.Width / 4), bounds.Height - 70,
-                bounds.Width / 2, 50, "Take a rest (-25 Infection)", Color.Blue);
+                bounds.Width / 2, 50, $"Take a rest (-{ReduceInfectionBy} Infection)", Color.Blue);
             RestButton.OnPressed = delegate ()
             {
-                PlayerManager.DecreaseInfection(25);
+                PlayerManager.DecreaseInfection(ReduceInfectionBy);
                 PFButton.ReturnID(RestButtonID);
                 RemoveDaemon();
             };

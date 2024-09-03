@@ -23,6 +23,8 @@ namespace HollowZero.Daemons.Shop
 
         public static List<HollowProgram> CustomPrograms = new();
 
+        public static float PriceMultiplier { get; internal set; } = 1.0f;
+
         protected enum StoreScreen
         {
             Main, Shop, EmptyShop,
@@ -42,6 +44,11 @@ namespace HollowZero.Daemons.Shop
         public static new bool Registerable => false;
 
         public bool hasBeenRobbed = false;
+
+        protected int GetFinalPrice(int basePrice)
+        {
+            return (int)Math.Ceiling(basePrice * PriceMultiplier);
+        }
 
         public virtual void RobStore(string itemName)
         {

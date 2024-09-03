@@ -70,14 +70,15 @@ namespace HollowZero.Daemons.Shop
                 if(ItemsForSale.Any(i => i.Key.ToLower().StartsWith(itemName)))
                 {
                     var program = ItemsForSale.First(i => i.Key.ToLower().StartsWith(itemName));
-                    if(program.Value > 1000)
+                    int itemCost = GetFinalPrice(program.Value);
+                    if(itemCost > 1000)
                     {
                         os.write("<!> You can't steal that item -- it's very expensive, so it's on lockdown!");
                         return;
                     }
                     var userProgram = GetProgramByName(program.Key);
                     AddProgramToPlayerPC(userProgram.DisplayName, userProgram.FileContent);
-                    int infectionLevelRise = (int)Math.Floor(program.Value * 0.1f);
+                    int infectionLevelRise = (int)Math.Floor(itemCost * 0.1f);
                     IncreaseInfection(infectionLevelRise, true);
                     ItemsForSale.Remove(program.Key);
                     hasBeenRobbed = true;
@@ -85,7 +86,8 @@ namespace HollowZero.Daemons.Shop
                     os.beepSound.Play();
                 } else if(CurrentBundleForSale.ID.ToLower().StartsWith(itemName))
                 {
-                    if(CurrentBundleForSale.Price > 1000)
+                    int bundleCost = GetFinalPrice(CurrentBundleForSale.Price);
+                    if(bundleCost > 1000)
                     {
                         os.write("<!> You can't steal that bundle -- it's very expensive, so it's on lockdown!");
                         return;
@@ -94,7 +96,7 @@ namespace HollowZero.Daemons.Shop
                     {
                         AddProgramToPlayerPC(program.DisplayName, program.FileContent);
                     }
-                    int infectionLevelRise = (int)Math.Floor(CurrentBundleForSale.Price * 0.1f);
+                    int infectionLevelRise = (int)Math.Floor(bundleCost * 0.1f);
                     IncreaseInfection(infectionLevelRise, true);
                     CurrentBundleForSale = null;
                     hasBeenRobbed = true;
@@ -309,6 +311,8 @@ namespace HollowZero.Daemons.Shop
         private const int ITEM_BUTTON_HEIGHT = 40;
         private const int EXIT_BUTTON_HEIGHT = 20;
 
+        private int BundlePrice => GetFinalPrice(CurrentBundleForSale.Price);
+
         private void DrawMainScreen(Rectangle bounds)
         {
             var textHeight = GetStringHeight(GuiData.titlefont, "PROGRAM SHOP");
@@ -330,9 +334,9 @@ namespace HollowZero.Daemons.Shop
                 HollowButton BundleButton = new HollowButton(ButtonIDs[0],
                 bounds.X + (bounds.Width / 4), (bounds.Center.Y - (SPECIAL_BUTTON_HEIGHT / 2)) + yOffset, bounds.Width / 2,
                 SPECIAL_BUTTON_HEIGHT,
-                $"{CurrentBundleForSale.ID} Bundle (FEATURED) - ${CurrentBundleForSale.Price}\n{programsInBundle}",
+                $"{CurrentBundleForSale.ID} Bundle (FEATURED) - ${BundlePrice}\n{programsInBundle}",
                 OS.currentInstance.brightUnlockedColor);
-                if (CurrentBundleForSale.Price > PlayerCredits)
+                if (BundlePrice > PlayerCredits)
                 {
                     BundleButton.Disabled = true;
                     BundleButton.DisabledMessage = "<!> You don't have enough credits for this bundle!";
@@ -397,9 +401,9 @@ namespace HollowZero.Daemons.Shop
             for (var i = 0; i < ItemsForSale.Count; i++)
             {
                 var key = ItemsForSale.ElementAt(i).Key;
-                var cost = ItemsForSale[key];
+                var cost = GetFinalPrice(ItemsForSale[key]);
                 var program = ProgramsForSale.First(p => p.Key.DisplayName == key).Key;
-                HollowButton ItemButton = new HollowButton(ButtonIDs[7 + i], bounds.X + 10,
+                HollowButton ItemButton = new(ButtonIDs[7 + i], bounds.X + 10,
                     (bounds.Y + bounds.Height) - yOffset, bounds.Width / 3, ITEM_BUTTON_HEIGHT,
                     $"{program.DisplayName} - ${cost}", OS.currentInstance.highlightColor);
                 ItemButton.OnPressed = delegate ()
@@ -448,7 +452,7 @@ namespace HollowZero.Daemons.Shop
                 OS.currentInstance.write("Please report this to the mod developer.");
                 return;
             }
-            if (!AttemptPurchaseItem(bundle.Price)) return;
+            if (!AttemptPurchaseItem(BundlePrice)) return;
             CurrentBundleForSale = null;
 
             foreach (var prog in bundle.Programs)

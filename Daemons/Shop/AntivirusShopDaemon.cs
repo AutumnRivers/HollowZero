@@ -327,6 +327,8 @@ namespace HollowZero.Daemons.Shop
             {
                 infecCost = (int)(Math.Round(infecCost * (infectionDecreasesPurchased * LowerInfectionMultiplier) / 5.0) * 5); 
             }
+            malwareCost = (int)Math.Ceiling(malwareCost * PriceMultiplier);
+            infecCost = (int)Math.Ceiling(infecCost * PriceMultiplier);
 
             int buttonX = bounds.X + (bounds.Width / 4);
             int buttonWidth = bounds.Width / 2;
@@ -440,6 +442,7 @@ namespace HollowZero.Daemons.Shop
             {
                 corrRemovalCost += HollowZeroCore.CollectedCorruptions.Where(c => c.Upgraded).Count() * 50;
             }
+            corrRemovalCost = (int)Math.Ceiling(corrRemovalCost * PriceMultiplier);
 
             int buttonX = bounds.X + (bounds.Width / 4);
             int buttonWidth = bounds.Width / 2;

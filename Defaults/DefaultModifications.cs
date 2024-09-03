@@ -23,7 +23,8 @@ namespace HollowZero
             new CSECModifier(),
             new CoelModifier(),
             new MaskrModifier(),
-            new QuikStrikeModifier()
+            new QuikStrikeModifier(),
+            new IncenseModifier()
         };
 
         public static ReadOnlyCollection<Modification> Mods {
@@ -380,6 +381,51 @@ namespace HollowZero
 
                 DisplayName = "maskr_2.0";
                 PowerLevels = new List<int>() { 20 };
+            }
+        }
+
+        private class IncenseModifier : Modification
+        {
+            public IncenseModifier() : base("Unscented Incense", "incense")
+            {
+                PowerLevels = new List<int>() { 5 };
+                Trigger = ModTriggers.None;
+                Effect = delegate (Computer _)
+                {
+                    Daemons.RestStopDaemon.ReduceInfectionBy += PowerLevels[0];
+                };
+            }
+
+            public override string Description
+            {
+                get
+                {
+                    return $"Rest stops now reduce {PowerLevels[0]} more levels of infection.";
+                }
+            }
+
+            public override void Upgrade()
+            {
+                if (Upgraded) return;
+                base.Upgrade();
+
+                int newIncrease = 15;
+
+                DisplayName = "Sweet Incense";
+                SetNewIncrease(PowerLevels[0], newIncrease);
+                PowerLevels = new List<int>() { newIncrease };
+            }
+
+            private void SetNewIncrease(int oldValue, int newValue)
+            {
+                Daemons.RestStopDaemon.ReduceInfectionBy -= oldValue;
+                Daemons.RestStopDaemon.ReduceInfectionBy += newValue;
+            }
+
+            public override void Discard()
+            {
+                SetNewIncrease(PowerLevels[0], 0);
+                base.Discard();
             }
         }
     }

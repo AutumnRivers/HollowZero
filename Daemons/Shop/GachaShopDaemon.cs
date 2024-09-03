@@ -72,14 +72,16 @@ namespace HollowZero.Daemons.Shop
 
             const int BUTTON_HEIGHT = 50;
 
+            int modPrice = (int)Math.Ceiling((Cost * ((DEFAULT_MOD_CHANCES - RemainingModifications) + 1)) * PriceMultiplier);
+
             var modButton = new HollowButton(ModButtonID, bounds.Center.X - (bounds.Width / 4),
                 bounds.Center.Y - (BUTTON_HEIGHT / 2), bounds.Width / 2, BUTTON_HEIGHT,
                 "Get Modification", Color.White);
             if(RemainingModifications > 0)
             {
-                modButton.Text = $"Get Random Modification! (${Cost})\n(Remaining Chances: {RemainingModifications}";
+                modButton.Text = $"Get Random Modification! (${modPrice})\n(Remaining Chances: {RemainingModifications}";
                 modButton.Color = OS.currentInstance.brightUnlockedColor;
-                if(PlayerManager.PlayerCredits < Cost)
+                if(PlayerManager.PlayerCredits < modPrice)
                 {
                     modButton.Disabled = true;
                     modButton.DisabledMessage = "<!> You don't have enough credits for that!";
@@ -121,12 +123,14 @@ namespace HollowZero.Daemons.Shop
             }
             modButton.DoButton();
 
+            int upgradeCost = (int)Math.Ceiling((Cost * 1.5f) * ((DEFAULT_UPGRADE_CHANCES - RemainingUpgrades) + 1) * PriceMultiplier);
+
             var upgradeButton = new HollowButton(UpgradeButtonID, bounds.Center.X - (bounds.Width / 4),
                 bounds.Center.Y + (BUTTON_HEIGHT / 2) + 25, bounds.Width / 2, BUTTON_HEIGHT,
-                $"Get Mod. Upgrade (${(int)(Cost * 1.5f)})", Color.White);
+                $"Get Mod. Upgrade (${upgradeCost})", Color.White);
             if(RemainingUpgrades > 0)
             {
-                if (PlayerManager.PlayerCredits < (int)(Cost * 1.5f))
+                if (PlayerManager.PlayerCredits < upgradeCost)
                 {
                     upgradeButton.Disabled = true;
                     upgradeButton.DisabledMessage = "<!> You don't have enough credits for that!";
