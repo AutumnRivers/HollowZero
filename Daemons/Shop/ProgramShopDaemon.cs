@@ -4,8 +4,9 @@ using System.Linq;
 using System.Text;
 
 using Hacknet;
-using Hacknet.Effects;
 using Hacknet.Gui;
+
+using HollowZero.Managers;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -214,10 +215,10 @@ namespace HollowZero.Daemons.Shop
             if (chance > (100 * (CurrentLayer % 5)) - 15 && ProgramBundles.Any())
             {
                 HollowBundle bundle;
-                if (!CanDecrypt)
+                if (NeedsDecListed)
                 {
                     bundle = ProgramBundles.First(p => p.ID == "DEC Suite");
-                } else if(!CanMemDump)
+                } else if(NeedsMemListed)
                 {
                     bundle = ProgramBundles.First(p => p.ID == "Memory Master");
                 } else

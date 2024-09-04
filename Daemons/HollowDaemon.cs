@@ -129,7 +129,7 @@ namespace HollowZero.Daemons
 
         public Action OnPressed;
 
-        public bool IsAction => false;
+        public bool IsAction = false;
 
         public void DoButton()
         {

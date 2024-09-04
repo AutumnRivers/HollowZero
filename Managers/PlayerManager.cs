@@ -12,6 +12,7 @@ using Microsoft.Xna.Framework;
 
 using static HollowZero.Nodes.LayerSystem.LayerGenerator;
 using static HollowZero.HollowLogger;
+using HollowZero.Daemons.Event;
 
 namespace HollowZero.Managers
 {
@@ -23,20 +24,22 @@ namespace HollowZero.Managers
         private static bool hasMemGen = false;
         private static bool hasMemForen = false;
 
+        public static bool Transitioning { get; private set; } = false;
+
         public static int InfectionLevel { get; internal set; } = 0;
         public static uint PlayerCredits { get; internal set; } = 0;
         public static int CurrentLayer { get; internal set; } = 1;
 
         private static readonly string[] decData = new string[]
         {
-            ShopDaemon.GetExeDataByName("Decypher"),
-            ShopDaemon.GetExeDataByName("DECHead")
+            PortExploits.crackExeData[9],
+            PortExploits.crackExeData[10]
         };
 
         private static readonly string[] memData = new string[]
         {
-            ShopDaemon.GetExeDataByName("MemDumpGenerator"),
-            ShopDaemon.GetExeDataByName("MemForensics")
+            PortExploits.crackExeData[34],
+            PortExploits.crackExeData[33]
         };
 
         public static void AddProgramToPlayerPC(string programName, string programContent)
@@ -47,23 +50,35 @@ namespace HollowZero.Managers
             if (decData[0] == programContent)
             {
                 hasDecypher = true;
-                if (hasDecHead) { CanDecrypt = true; }
+                if (hasDecHead) {
+                    CanDecrypt = true;
+                    NeedsDecListed = false;
+                }
             }
             else if (decData[1] == programContent)
             {
                 hasDecHead = true;
-                if (hasDecypher) { CanDecrypt = true; }
+                if (hasDecypher) {
+                    CanDecrypt = true;
+                    NeedsDecListed = false;
+                }
             }
 
             if (memData[0] == programContent)
             {
                 hasMemGen = true;
-                if (hasMemForen) { CanMemDump = true; }
+                if (hasMemForen) {
+                    CanMemDump = true;
+                    NeedsMemListed = false;
+                }
             }
             else if (memData[1] == programContent)
             {
                 hasMemForen = true;
-                if (hasMemGen) { CanMemDump = true; }
+                if (hasMemGen) {
+                    CanMemDump = true;
+                    NeedsMemListed = false;
+                }
             }
 
             if (programContent == ComputerLoader.filter("#WIRESHARK_EXE#"))
@@ -183,6 +198,9 @@ namespace HollowZero.Managers
             {
                 CustomEffects.CurrentStage++;
             };
+            UnavoidableEventDaemon.LockUpModules();
+            OS.currentInstance.display.inputLocked = true;
+            Transitioning = true;
             Action layerTransitionFX = delegate ()
             {
                 int stage = CustomEffects.CurrentStage;
@@ -213,6 +231,7 @@ namespace HollowZero.Managers
                             RenderedRectangle.doRectangle(screen.X, screen.Y, screen.Width, screen.Height, Color.White);
                             if (!warned)
                             {
+                                warned = true;
                                 os.IncConnectionOverlay.sound1.Play();
                             }
                             HollowTimer.AddTimer("layer_transition_stage1", 2.0f, changeStage, false);
@@ -225,6 +244,8 @@ namespace HollowZero.Managers
                             {
                                 nodesPrepared = true;
                                 NodeManager.ClearNetMap();
+                                Programs.disconnect(new string[] { }, os);
+                                OS.currentInstance.display.command = "dc";
                                 // Add starting node here...
                             }
                             break;
@@ -246,6 +267,10 @@ namespace HollowZero.Managers
                                     $"You've reached the {CurrentLayer}{layerSuffix} layer",
                                     "-----------------------------------------"
                                     );
+                                UnavoidableEventDaemon.UnlockModules();
+                                OS.currentInstance.display.inputLocked = false;
+                                Transitioning = false;
+                                GameplayManager.GenerateAndLoadInLayer();
                             });
                             break;
                     }

@@ -96,6 +96,7 @@
     <Compile Include="Defaults\DefaultModifications.cs" />
     <Compile Include="Executables\Cryptominer.cs" />
     <Compile Include="Extensions\ColorExtensions.cs" />
+    <Compile Include="Extensions\ComputerExtensions.cs" />
     <Compile Include="Extensions\FolderExtensions.cs" />
     <Compile Include="Extensions\ListExtensions.cs" />
     <Compile Include="Extensions\ReflectionHelpers.cs" />

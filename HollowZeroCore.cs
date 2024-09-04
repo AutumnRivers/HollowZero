@@ -54,6 +54,10 @@ namespace HollowZero
         public const string DEFAULT_CONFIG_PATH = "/Plugins/HZConfig";
         public const string DEFAULT_PACKS_FOLDER = DEFAULT_CONFIG_PATH + "/Packs/";
 
+        public const float BASE_PROXY_SPEED = 0.5f;
+        public const float BASE_FIREWALL_ADD = -0.5f;
+        public const float PROXY_MULTIPLIER = 1.25f;
+
         public const int MAX_MALWARE = 4;
 
         internal static List<Malware> CollectedMalware { get; set; } = new();
@@ -74,7 +78,6 @@ namespace HollowZero
         }
 
         internal static UIState CurrentUIState { get; set; }
-        internal static bool EnableTrinity { get; set; }
         internal static string Mode { get; set; }
 
         public static float ForkbombMultiplier { get; internal set; } = 1.0f;
@@ -235,7 +238,6 @@ namespace HollowZero
             if(ReadExtensionConfigIfAny(out var config))
             {
                 Mode = config.mode;
-                EnableTrinity = config.enableTrinity;
                 ShowInfecTracker = config.mode == "Endless" || config.launchInfecTracker;
             }
 
@@ -520,14 +522,6 @@ namespace HollowZero
          * StoryWithEndless - Set amount of pre-defined layers followed by endless randomly generated layers
          */
         public string mode = "Endless";
-
-        /*
-         * Determines whether or not Trinity should be enabled, as she's technically one of my characters
-         * and would therefore break immersion on any extension that isn't mine.
-         * 
-         * If Trinity is disabled, her chance shop branding is simply replaced with generic branding.
-         */
-        public bool enableTrinity = true;
 
         /*
          * Whether or not to launch InfecTracker on extension start.

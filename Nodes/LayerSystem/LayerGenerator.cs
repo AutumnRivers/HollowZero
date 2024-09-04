@@ -27,7 +27,7 @@ namespace HollowZero.Nodes.LayerSystem
         public const int MAX_LAYER_SIZE = 10;
 
         private static Random random = new();
-        public static int LayerSize => random.Next(MIN_LAYER_SIZE, MAX_LAYER_SIZE);
+        public static int LayerSize = MAX_LAYER_SIZE;
 
         internal static void RegenSeed()
         {
@@ -68,6 +68,9 @@ namespace HollowZero.Nodes.LayerSystem
         public static bool CanMemDump { get; set; } = false;
         public static bool CanWireshark { get; set; } = false;
 
+        public static bool NeedsDecListed { get; set; } = true;
+        public static bool NeedsMemListed { get; set; } = true;
+
         private static List<Computer> GenerateSolutionComp(Computer comp, Computer prevComp, ref List<Computer> layerNodes,
             ref bool needsLinking)
         {
@@ -88,7 +91,7 @@ namespace HollowZero.Nodes.LayerSystem
                     needsLinking = true;
                     break;
                 case DecryptFile:
-                    if(CanDecrypt)
+                    if(!CanDecrypt)
                     {
                         needsLinking = true;
                         break;
@@ -97,6 +100,11 @@ namespace HollowZero.Nodes.LayerSystem
                     if(pass != "")
                     {
                         int chance = random.Next(1, 5);
+                        if(!CanMemDump)
+                        {
+                            prevComp.getFolderFromPath("home").files.Add(new FileEntry(pass, "enc_pass.txt"));
+                            break;
+                        }
                         switch(chance)
                         {
                             case 1:
@@ -124,7 +132,7 @@ namespace HollowZero.Nodes.LayerSystem
                     prevComp.getFolderFromPath("home").files.Add(encFile);
                     break;
                 case MemoryDump:
-                    if(CanMemDump)
+                    if(!CanMemDump)
                     {
                         needsLinking = true;
                         break;
@@ -132,7 +140,7 @@ namespace HollowZero.Nodes.LayerSystem
                     prevComp.Memory.DataBlocks.Add("--) " + comp.ip);
                     break;
                 case WiresharkCapture:
-                    if(CanWireshark)
+                    if(!CanWireshark)
                     {
                         needsLinking = true;
                         break;
@@ -184,7 +192,7 @@ namespace HollowZero.Nodes.LayerSystem
         public static HollowLayer GenerateSolvableLayer()
         {
             HollowLayer layer = new();
-            int layerSize = LayerSize;
+            int layerSize = Utils.random.Next(MIN_LAYER_SIZE, MAX_LAYER_SIZE);
 
             StuxnetCore.wiresharkComps.Clear();
             Computer lastComp = null;
@@ -215,10 +223,16 @@ namespace HollowZero.Nodes.LayerSystem
                 }
                 layer.nodes.Add(genComp);
                 int currentCompIndex = layer.nodes.IndexOf(genComp);
+                string currentCompID = genComp.idName;
                 int lastCompIndex = i > 0 ? layer.nodes.IndexOf(lastComp) : -1;
                 if(link)
                 {
                     solComps[1].links.Add(currentCompIndex);
+                    if (!solComps[1].attatchedDeviceIDs.IsNullOrWhiteSpace())
+                    {
+                        solComps[1].attatchedDeviceIDs += ",";
+                    }
+                    solComps[1].attatchedDeviceIDs += currentCompID;
                 }
                 if (i > 0 && lastCompIndex > -1)
                 {

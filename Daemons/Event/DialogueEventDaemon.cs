@@ -42,13 +42,14 @@ namespace HollowZero.Daemons.Event
 
             DrawEventTemplate(bounds);
 
-            var continueButton = new HollowButton(ButtonID, bounds.X + 25, bounds.Y + bounds.Height - 75, 200, 50, CONTINUE_TEXT, ButtonColor);
+            HollowButton continueButton = new(ButtonID, bounds.X + 25, bounds.Y + bounds.Height - 75, 200, 50, CONTINUE_TEXT, ButtonColor);
             continueButton.OnPressed = delegate ()
             {
                 OS.currentInstance.display.command = "probe";
                 if (!OneShot) return;
                 RemoveDaemon();
             };
+            continueButton.IsAction = true;
             continueButton.DoButton();
         }
     }

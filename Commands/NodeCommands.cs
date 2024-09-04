@@ -12,7 +12,7 @@ namespace HollowZero.Commands
     {
         public static void ListAvailableNodes(OS os, string[] args)
         {
-            List<Computer> visisbleNodes = new List<Computer>();
+            List<Computer> visisbleNodes = new();
 
             foreach(var nodeIndex in os.netMap.visibleNodes)
             {

@@ -12,6 +12,7 @@ using Pathfinder.Daemon;
 using Pathfinder.GUI;
 
 using HollowZero.Managers;
+using Hacknet.Gui;
 
 namespace HollowZero.Daemons
 {
@@ -44,6 +45,8 @@ namespace HollowZero.Daemons
 
             UpdateGrid();
             gridEffect.RenderGrid(bounds, sb, bgColor1, bgColor2, bgColor3, true);
+            RenderedRectangle.doRectangle(bounds.X, bounds.Y, bounds.Width, bounds.Height,
+                Color.Black * 0.75f);
 
             int buttonWidth = bounds.Width / 2;
             int buttonHeight = 50;
@@ -55,6 +58,12 @@ namespace HollowZero.Daemons
                 transitionButton.Disabled = true;
                 transitionButton.DisabledMessage = "<!> You need to gain admin access before continuing!";
                 transitionButton.Text = "(LOCKED)";
+            }
+            if(PlayerManager.Transitioning)
+            {
+                transitionButton.Disabled = true;
+                transitionButton.DisabledMessage = "<!> Pay attention!";
+                transitionButton.Text = "(SPINNING UP...)";
             }
             transitionButton.OnPressed = delegate ()
             {

@@ -32,7 +32,8 @@ namespace HollowZero.Commands
             { FindMethod("GenerateRandomLayer"), "grlayer" },
             { FindMethod("GenerateSolvableLayer"), "gslayer" },
             { FindMethod("ListDebugStats"), "dbgstats" },
-            { FindMethod("TestLayerTransition"), "nextlayerpls" }
+            { FindMethod("TestLayerTransition"), "nextlayerpls" },
+            { FindMethod("LoadInRandomLayer"), "randlayer" }
         };
 
         private static MethodInfo FindMethod(string name)
@@ -278,6 +279,16 @@ namespace HollowZero.Commands
                     os.write("hooh. layer transition messed up. bet you feel pretty stupid");
                     LogError(e.ToString());
                 }
+            });
+        }
+
+        public static void LoadInRandomLayer(OS os, string[] args)
+        {
+            os.write("sure, man, whatever");
+            os.delayer.Post(ActionDelayer.NextTick(), delegate ()
+            {
+                GameplayManager.GenerateAndLoadInLayer();
+                os.write("ay, a new layer shoulda loaded in, ayy, fuggedaboudit");
             });
         }
     }

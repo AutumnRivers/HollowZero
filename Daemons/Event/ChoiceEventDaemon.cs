@@ -105,6 +105,7 @@ namespace HollowZero.Daemons.Event
                 var b = new HollowButton(choice.ButtonID, bounds.X + 25,
                     bounds.Y + bounds.Height - buttonOffset, bounds.Width - 50, 50, $"{choice.Title}\n{choice.Subtext}", buttonColor);
 
+                b.IsAction = true;
                 if(choice.ChoiceType == "takecreds" && PlayerManager.PlayerCredits - choice.ChoiceAmount < 0)
                 {
                     b.Disabled = true;

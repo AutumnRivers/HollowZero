@@ -13,8 +13,6 @@ namespace HollowZero.Nodes.LayerSystem
     public class HollowLayer
     {
         public List<Computer> nodes = new();
-        // ID1, ID2
-        public List<KeyValuePair<string, string>> nodeConnections = new();
 
         public bool Solvable { get; internal set; } = false;
         public List<LayerSolutionStep> Solution { get; internal set; } = new();

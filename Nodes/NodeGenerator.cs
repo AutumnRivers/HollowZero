@@ -38,6 +38,7 @@ namespace HollowZero.Nodes
 
                 newNode.links.Add(os.netMap.nodes.IndexOf(node));
             }
+            newNode.disabled = false;
 
             return newNode;
         }

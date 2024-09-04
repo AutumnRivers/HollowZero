@@ -4,6 +4,7 @@
 (NP) - Needs (Harmony) Patch
 (CH) - Needs Change
 (T) - Untested
+(BB) - Backburner, not currently being worked on
 
 - [X] Basics
     - [X] Credits System
@@ -13,12 +14,14 @@
     - [X] HollowCore / Inventory
 - [ ] Malware
     - [X] Cryptominer
-    - [ ] Ransomware (NP) - Also needs `payrs` command
-    - [ ] Adware - `EveryAction` trigger unimplemented
+    - [ ] Adware (T)
     - [ ] Spyware (T)
     - [ ] Dropper (T)
-    - [ ] Packet Storm (T)
+    - [X] Packet Storm
     - [ ] FireScramble - Might need new `NodeGenerated` trigger...?
+    - [ ] Skimmer (T)
+    - [ ] Paranoia (T)
+    - [ ] Ransomware (NP)(BB) - may be added in future
 - [X] Modifications
     - [X] QuikStrike
     - [X] Waterfall
@@ -29,6 +32,7 @@
     - [X] CSEC's Gift
     - [X] Coel's Aid
     - [X] maskr
+    - [ ] Incense (T)
 - [X] Corruptions
     - [X] Display Cor.
     - [X] CMD Cor.
@@ -42,24 +46,23 @@
     - [X] Rest Stops
     - [ ] Story Events
     - [X] Multi-Page Events
-- [ ] Shops
+- [X] Shops
     - [X] Program Shops
     - [X] Gacha Shops
     - [X] Antivirus Shop
-    - [ ] Chance Shop / Trinity
 - [ ] Layer System
     - [ ] Base Layers
     - [ ] Timed Layers - Typically reserved for transitions (e.g., 29 -> 30)
     - [ ] Unstable Layers - Raises infection the longer the player stays in one
-    - [ ] Transition Nodes
+    - [X] Transition Nodes
     - [X] Node Generation
         - [X] Basic Node Generation
         - [X] Event Node Generation
-    - [ ] Layer Generation
+    - [X] Layer Generation
         - [X] Randomized Layers (Always Unsolvable)
-        - [ ] Solvable Layers
+        - [X] Solvable Layers
             - [X] Basic S.Layers (Go from one node to another)
-            - [ ] Advanced S.Layers (Decrypt files, go to shops, etc.)
+            - [X] Advanced S.Layers (Decrypt files, go to shops, etc.)
     - [ ] Winnable Layer Generation
         - [ ] Program Balancing
         - [ ] Proxy/Firewall Balancing
