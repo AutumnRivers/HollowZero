@@ -13,6 +13,7 @@ using Microsoft.Xna.Framework;
 using static HollowZero.Nodes.LayerSystem.LayerGenerator;
 using static HollowZero.HollowLogger;
 using HollowZero.Daemons.Event;
+using Pathfinder.Executable;
 
 namespace HollowZero.Managers
 {
@@ -199,6 +200,10 @@ namespace HollowZero.Managers
                 CustomEffects.CurrentStage++;
             };
             UnavoidableEventDaemon.LockUpModules();
+            foreach(var exe in OS.currentInstance.exes)
+            {
+                exe.Kill();
+            }
             OS.currentInstance.display.inputLocked = true;
             Transitioning = true;
             Action layerTransitionFX = delegate ()

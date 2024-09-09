@@ -134,17 +134,21 @@ namespace HollowZero.Daemons.Event
                     else
                     {
                         int luck = choice.TotalLuckValue;
-                        Random random = new Random();
+                        Random random = Utils.random;
                         int luckValue = random.Next(0, luck);
 
                         foreach (var chance in choice.Chances)
                         {
-                            if (luckValue < chance.Key)
+                            if (luckValue <= chance.Key)
                             {
                                 if(chance.Value.Page > 0)
                                 {
                                     EventContent = ContentPages[chance.Value.Page];
                                 }
+                                LogDebug(
+                                    $"Triggered Chance Event: {chance.Value.ChoiceType} | " +
+                                    $"Chance: {chance.Key} | Page: {chance.Value.Page}"
+                                    , true);
                                 chance.Value.Trigger.Invoke();
                                 break;
                             }
@@ -281,6 +285,9 @@ namespace HollowZero.Daemons.Event
                         {
                             choiceEvent.ContentPages.Add(chance.Value);
                             choiceChance.Page = choiceEvent.ContentPages.Count - 1;
+                            LogDebug(
+                                $"Choice: {choice.Title} | Page: {choiceChance.Page} | Content: {chance.Value}"
+                                , true);
                             currentPage++;
                         }
 
@@ -290,7 +297,8 @@ namespace HollowZero.Daemons.Event
                         };
                         int luck = int.Parse(chance.ReadRequiredAttribute("Chance"));
 
-                        choice.Chances.Add(luck, choiceChance);
+                        choice.TotalLuckValue += luck;
+                        choice.Chances.Add(choice.TotalLuckValue, choiceChance);
                     }
                 }
 
@@ -367,7 +375,7 @@ namespace HollowZero.Daemons.Event
         public int Page = -1;
 
         public SortedDictionary<int, ChoiceChance> Chances = new SortedDictionary<int, ChoiceChance>(new SmallestFirst());
-        public int TotalLuckValue = 100;
+        public int TotalLuckValue = 0;
     }
 
     public class ChoiceChance

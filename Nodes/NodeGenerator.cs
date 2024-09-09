@@ -62,19 +62,29 @@ namespace HollowZero.Nodes
             return id;
         }
 
+        /*
+         * Each layer can have a maximum of:
+         * 2 Program Shops
+         * 2 Rest Stops
+         * 1 Antivirus Shop
+         * 1 Gacha Shop
+         * Unlimited Choice/Dialogue events
+         */
         private static readonly List<string> possibleEvents = new()
         {
             "choice", "dialogue", "avshop", "gachashop", "progshop", "reststop",
             "none"
         };
 
-        public static Computer GenerateEventComputer(string title)
+        public static Computer GenerateEventComputer(string title, params string[] except)
         {
             int idx = random.Next(0, possibleEvents.Count);
             string ev = possibleEvents[idx];
             HollowDaemon eventDaemon;
             var comp = GenerateComputer(title);
             OS os = OS.currentInstance;
+
+            possibleEvents.RemoveAll(ev => except.Contains(ev));
 
             switch(ev)
             {
@@ -98,6 +108,8 @@ namespace HollowZero.Nodes
                     eventDaemon = null;
                     break;
             }
+
+            possibleEvents.AddRange(except);
 
             if (eventDaemon == null) return comp;
             comp.daemons.Add(eventDaemon);

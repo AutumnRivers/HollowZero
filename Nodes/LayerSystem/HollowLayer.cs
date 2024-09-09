@@ -14,6 +14,8 @@ namespace HollowZero.Nodes.LayerSystem
     {
         public List<Computer> nodes = new();
 
+        public List<string> Events { get; internal set; } = new();
+
         public bool Solvable { get; internal set; } = false;
         public List<LayerSolutionStep> Solution { get; internal set; } = new();
 

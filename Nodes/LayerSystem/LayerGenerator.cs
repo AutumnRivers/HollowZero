@@ -67,6 +67,7 @@ namespace HollowZero.Nodes.LayerSystem
         public static bool CanDecrypt { get; set; } = false;
         public static bool CanMemDump { get; set; } = false;
         public static bool CanWireshark { get; set; } = false;
+        public static bool CanScanEOS { get; set; } = false;
 
         public static bool NeedsDecListed { get; set; } = true;
         public static bool NeedsMemListed { get; set; } = true;
@@ -189,6 +190,26 @@ namespace HollowZero.Nodes.LayerSystem
             return eosDevice;
         }
 
+        internal static string DetermineEventFromComputer(Computer comp)
+        {
+            if(comp.daemons.OfType<ProgramShopDaemon>().Any())
+            {
+                return "progshop";
+            } else if(comp.daemons.OfType<Daemons.RestStopDaemon>().Any())
+            {
+                return "reststop";
+            } else if(comp.daemons.OfType<GachaShopDaemon>().Any())
+            {
+                return "gachashop";
+            } else if(comp.daemons.OfType<AntivirusShopDaemon>().Any())
+            {
+                return "avshop";
+            } else
+            {
+                return null;
+            }
+        }
+
         public static HollowLayer GenerateSolvableLayer()
         {
             HollowLayer layer = new();
@@ -197,7 +218,9 @@ namespace HollowZero.Nodes.LayerSystem
             StuxnetCore.wiresharkComps.Clear();
             Computer lastComp = null;
 
-            for(var i = 0; i < layerSize + 1; i++)
+            List<string> excludedEvents = new();
+
+            for (var i = 0; i < layerSize + 1; i++)
             {
                 bool lastNode = i == layerSize;
                 bool firstNode = lastComp == null;
@@ -205,7 +228,7 @@ namespace HollowZero.Nodes.LayerSystem
                 var genComp = NodeGenerator.GenerateComputer($"TestComp{i + 1}");
                 if (Utils.flipCoin())
                 {
-                    genComp = NodeGenerator.GenerateEventComputer($"TestComp{i + 1}");
+                    genComp = NodeGenerator.GenerateEventComputer($"TestComp{i + 1}", excludedEvents.ToArray());
                 }
                 if(PlayerManager.CurrentLayer % 5 == 0 && firstNode)
                 {
@@ -220,6 +243,12 @@ namespace HollowZero.Nodes.LayerSystem
                 if(lastNode)
                 {
                     genComp = NodeGenerator.GenerateTransitionNode();
+                }
+                var ev = DetermineEventFromComputer(genComp);
+                if(!ev.IsNullOrWhiteSpace())
+                {
+                    layer.Events.Add(ev);
+                    findExcludedEvents();
                 }
                 layer.nodes.Add(genComp);
                 int currentCompIndex = layer.nodes.IndexOf(genComp);
@@ -256,6 +285,22 @@ namespace HollowZero.Nodes.LayerSystem
                 LogWarning($"Failed to generate solvable layer on attempt {retries}");
                 StuxnetCore.wiresharkComps.Clear();
                 return GenerateSolvableLayer();
+            }
+
+            void findExcludedEvents()
+            {
+                if(layer.Events.Count(e => e == "progshop") >= 2 && !excludedEvents.Contains("progshop"))
+                {
+                    excludedEvents.Add("progshop");
+                }
+
+                if(layer.Events.Count(e => e == "reststop") >= 2 && !excludedEvents.Contains("reststop"))
+                {
+                    excludedEvents.Add("reststop");
+                }
+
+                if (layer.Events.Contains("avshop") && !excludedEvents.Contains("avshop")) excludedEvents.Add("avshop");
+                if (layer.Events.Contains("gachashop") && !excludedEvents.Contains("gachashop")) excludedEvents.Add("gachashop");
             }
         }
 
