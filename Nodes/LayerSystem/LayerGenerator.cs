@@ -18,6 +18,7 @@ using Stuxnet_HN.Patches;
 using Stuxnet_HN.Executables;
 using HollowZero.Daemons.Shop;
 using HollowZero.Managers;
+using Pathfinder.Port;
 
 namespace HollowZero.Nodes.LayerSystem
 {
@@ -210,6 +211,19 @@ namespace HollowZero.Nodes.LayerSystem
             }
         }
 
+        public const int MAX_EXES_PER_LAYER = 4;
+
+        public static readonly string[] ExcludedEXEs = new string[]
+        {
+            "Decypher", "DECHead", "MemForensics", "MemDumpGenerator", "TraceKill", "SignalScramble",
+            "Clock", "HexClock", "ClockV2", "OpShell", "ComShell", "SSLTrojan"
+        };
+        public static readonly string[] NonCrackEXEs = new string[]
+        {
+            "FTPSprint", "Tuneswap", "themechanger", "NetmapOrganizer", "DNotes", "eosDeviceScan"
+        };
+        public static readonly int[] DefaultPorts = new int[] { 21, 22, 25, 80 };
+
         public static HollowLayer GenerateSolvableLayer()
         {
             HollowLayer layer = new();
@@ -220,6 +234,17 @@ namespace HollowZero.Nodes.LayerSystem
 
             List<string> excludedEvents = new();
 
+            List<HollowProgram> layerExes = new();
+            int exesForLayer = Utils.random.Next(1, MAX_EXES_PER_LAYER + 1);
+            for (var i = 0; i < exesForLayer; i++)
+            {
+                var exeList = ShopDaemon.BaseGamePrograms.Where(ex => !PlayerManager.ObtainedEXEs.Contains(ex) &&
+                !layerExes.Contains(ex) && !ExcludedEXEs.Contains(ex.DisplayName)).ToList();
+
+                layerExes.Add(exeList.GetRandom());
+            }
+
+            List<HollowProgram> exesPlayerShouldHaveObtained = new();
             for (var i = 0; i < layerSize + 1; i++)
             {
                 bool lastNode = i == layerSize;
@@ -234,6 +259,30 @@ namespace HollowZero.Nodes.LayerSystem
                 {
                     genComp = NodeGenerator.GenerateProgramShopComp();
                 }
+                genComp = NodeGenerator.LoadBalancedPortsIntoComputer(genComp);
+                if(exesPlayerShouldHaveObtained.Any())
+                {
+                    foreach(var exe in exesPlayerShouldHaveObtained)
+                    {
+                        if (NonCrackEXEs.Contains(exe.DisplayName)) continue;
+                        var port = PortManager.GetPortRecordFromNumber(exe.ProgramID);
+                        if(!genComp.GetAllPortStates().Any(ps => ps.PortNumber == port.DefaultPortNumber))
+                        {
+                            genComp.AddPort(port);
+                            genComp.portsNeededForCrack++;
+                        }
+                    }
+                }
+                if (((Utils.flipCoin() && exesPlayerShouldHaveObtained.Count < exesForLayer)
+                    || (!exesPlayerShouldHaveObtained.Any() && i > layerSize - (exesForLayer + 1)))
+                    && !lastNode)
+                {
+                    var exe = layerExes.GetRandom();
+                    layerExes.Remove(exe);
+                    exesPlayerShouldHaveObtained.Add(exe);
+                    PlayerManager.ObtainedEXEs.Add(exe);
+                    genComp.getFolderFromPath("bin").files.Add(new FileEntry(exe.FileContent, exe.DisplayName + ".exe"));
+                }
                 List<Computer> solComps = new();
                 if(i > 0)
                 {
@@ -243,6 +292,14 @@ namespace HollowZero.Nodes.LayerSystem
                 if(lastNode)
                 {
                     genComp = NodeGenerator.GenerateTransitionNode();
+
+                    foreach(var exe in PlayerManager.ObtainedEXEs)
+                    {
+                        if (NonCrackEXEs.Contains(exe.DisplayName)) continue;
+                        var port = PortManager.GetPortRecordFromNumber(exe.ProgramID);
+                        genComp.AddPort(port);
+                        genComp.portsNeededForCrack++;
+                    }
                 }
                 var ev = DetermineEventFromComputer(genComp);
                 if(!ev.IsNullOrWhiteSpace())

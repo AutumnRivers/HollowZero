@@ -9,13 +9,27 @@ using Hacknet;
 using HollowZero.Daemons;
 using HollowZero.Daemons.Event;
 using HollowZero.Daemons.Shop;
+using HollowZero.Managers;
 
 using Pathfinder.Daemon;
+using Pathfinder.Port;
+
+using static HollowZero.HollowLogger;
 
 namespace HollowZero.Nodes
 {
     internal class NodeGenerator
     {
+        public static readonly int[] BaseGamePorts = new int[]
+        {
+            21, 22, 25, 80, 1433, 104, 6881, 192, 554, 443
+        };
+        public static readonly int[] SSLCrackPorts = new int[]
+        {
+            22, 80, 554
+        };
+        public const int SSL_PORT = 443;
+
         public static Computer GenerateComputer(string title, List<BaseDaemon> daemons, List<Computer> connectedComps = null, string ip = null)
         {
             ip ??= GetNewIP();
@@ -41,6 +55,30 @@ namespace HollowZero.Nodes
             newNode.disabled = false;
 
             return newNode;
+        }
+
+        public static Computer LoadBalancedPortsIntoComputer(Computer comp)
+        {
+            int maxPorts = PlayerManager.ObtainedCrackEXEs.Any() ? Utils.random.Next(0, PlayerManager.ObtainedCrackEXEs.Count) : 0;
+            bool canSSL = PlayerManager.ObtainedCrackEXEs.Any(exe => SSLCrackPorts.Contains(exe.ProgramID));
+            comp.ClearPorts();
+            for (var i = 0; i < maxPorts; i++)
+            {
+                var possiblePlayerPorts = BaseGamePorts.Where(p => PlayerManager.ObtainedCrackEXEs.Any(pr => pr.ProgramID == p)
+                && !comp.GetAllPortStates().Any(ps => ps.PortNumber == p)).ToList();
+                if ((!canSSL && possiblePlayerPorts.Contains(SSL_PORT)) ||
+                    (canSSL && !comp.GetAllPortStates().Any(ps => SSLCrackPorts.Contains(ps.PortNumber))
+                    && possiblePlayerPorts.Contains(SSL_PORT)))
+                {
+                    possiblePlayerPorts.Remove(SSL_PORT);
+                }
+                var port = PortManager.GetPortRecordFromNumber(possiblePlayerPorts.GetRandom());
+                comp.AddPort(port);
+            }
+            int portsToCrack = maxPorts > 0 ? Utils.random.Next(1, maxPorts + 1) : 0;
+            LogDebug($"{comp.name} | Max Ports: {maxPorts} | Ports Needed: {portsToCrack}");
+            comp.portsNeededForCrack = portsToCrack - 1;
+            return comp;
         }
 
         public static Computer GenerateComputer(string title)

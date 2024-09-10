@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 using Hacknet;
@@ -42,6 +43,14 @@ namespace HollowZero.Managers
             PortExploits.crackExeData[34],
             PortExploits.crackExeData[33]
         };
+
+        public static readonly string[] NonCrackEXEs = new string[]
+        {
+            "FTPSprint", "Tuneswap", "themechanger", "NetmapOrganizer", "DNotes", "eosDeviceScan"
+        };
+
+        public static List<HollowProgram> ObtainedEXEs { get; internal set; } = new();
+        public static List<HollowProgram> ObtainedCrackEXEs => ObtainedEXEs.Where(exe => !NonCrackEXEs.Contains(exe.DisplayName)).ToList();
 
         public static void AddProgramToPlayerPC(string programName, string programContent)
         {
@@ -89,6 +98,14 @@ namespace HollowZero.Managers
 
             if (binFolder.containsFileWithData(programContent)) return;
 
+            if(ShopDaemon.BaseGamePrograms.TryFind(ex => ex.DisplayName == programName, out var baseExe))
+            {
+                ObtainedEXEs.Add(baseExe);
+            }
+            if(ShopDaemon.CustomPrograms.TryFind(ex => ex.DisplayName == programName, out var exe))
+            {
+                ObtainedEXEs.Add(exe);
+            }
             binFolder.files.Add(programFile);
         }
 
@@ -200,9 +217,11 @@ namespace HollowZero.Managers
                 CustomEffects.CurrentStage++;
             };
             UnavoidableEventDaemon.LockUpModules();
-            foreach(var exe in OS.currentInstance.exes)
+            var exes = OS.currentInstance.exes.ToList();
+            foreach(var exe in exes)
             {
-                exe.Kill();
+                var exeIndex = OS.currentInstance.exes.IndexOf(exe);
+                OS.currentInstance.exes[exeIndex].Kill();
             }
             OS.currentInstance.display.inputLocked = true;
             Transitioning = true;
@@ -331,5 +350,7 @@ namespace HollowZero.Managers
                 }
             }
         }
+
+
     }
 }

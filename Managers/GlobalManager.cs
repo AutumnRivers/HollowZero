@@ -1,9 +1,9 @@
 ﻿using Hacknet;
+
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
+
 
 namespace HollowZero.Managers
 {
@@ -18,5 +18,7 @@ namespace HollowZero.Managers
         public static string LastCustomThemePath { get; internal set; }
         public static OSTheme LastOSTheme { get; internal set; }
         public static OSTheme TargetTheme { get; internal set; } = OSTheme.HacknetBlue;
+
+
     }
 }
